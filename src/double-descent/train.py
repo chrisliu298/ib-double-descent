@@ -1,5 +1,6 @@
 import argparse
 
+import torch
 import wandb
 from easydict import EasyDict
 from pytorch_lightning import Trainer, seed_everything
@@ -22,6 +23,7 @@ DATASETS = {
     "cifar100": CIFAR100DataModule,
 }
 MODELS = {"fcn": FCN, "cnn": CNN}
+ACTVATIONS = {"relu": torch.relu, "tanh": torch.tanh, "sigmoid": torch.sigmoid}
 
 
 def parse_args():
@@ -34,7 +36,7 @@ def parse_args():
     parser.add_argument("--model", type=str, required=True, choices=MODELS.keys())
     parser.add_argument("--layer_config", type=str, default="768x512x256x128x10")
     parser.add_argument(
-        "--activation", type=str, default="relu", choices=["relu", "tanh"]
+        "--activation", type=str, default="tanh", choices=["relu", "tanh", "sigmoid"]
     )
     # training
     parser.add_argument("--batch_size", type=int, default=128)
@@ -61,9 +63,11 @@ def main():
     config = parse_args()
     # set seed
     seed_everything(config.seed)
-    # set up data and model
+    # initialize data module
     datamodule = DATASETS[config.dataset](config)
-    net = MODELS[config.model](config.layer_config, config.activation)
+    # initialize model
+    activation_fn = ACTVATIONS[config.activation]
+    net = MODELS[config.model](config.layer_config, activation_fn)
     model = BaseModel(net, config)
     # setup trainer
     callbacks = [
