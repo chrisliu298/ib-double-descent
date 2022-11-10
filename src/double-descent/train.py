@@ -55,7 +55,7 @@ def parse_args():
     )
     parser.add_argument("--wd", type=float, default=0.0)
     # experiment
-    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--seed", type=int)
     parser.add_argument("--verbose", type=int, default=0)
     parser.add_argument("--wandb", action="store_true")
     # convert to an easydict object
@@ -72,7 +72,8 @@ def parse_args():
 def main():
     config = parse_args()
     # set seed
-    seed_everything(config.seed)
+    if config.seed is not None:
+        seed_everything(config.seed)
     # initialize data module
     datamodule = DATASETS[config.dataset](config)
     # initialize model
