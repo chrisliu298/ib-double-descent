@@ -7,16 +7,16 @@ from torchvision.datasets import CIFAR10, CIFAR100, MNIST, FashionMNIST
 
 
 class BaseDataModule(LightningDataModule):
-    def __init__(self):
+    def __init__(self, num_workers):
         super().__init__()
-        self.num_workers = os.cpu_count()
+        self.num_workers = num_workers  # os.cpu_count()
 
     def train_dataloader(self):
         return DataLoader(
             self.train_dataset,
             batch_size=self.config.batch_size,
             shuffle=True,
-            # num_workers=self.num_workers,
+            num_workers=self.num_workers,
         )
 
     def val_dataloader(self):
@@ -24,7 +24,7 @@ class BaseDataModule(LightningDataModule):
             self.test_dataset,
             batch_size=self.config.batch_size,
             shuffle=False,
-            # num_workers=self.num_workers,
+            num_workers=self.num_workers,
         )
 
     def test_dataloader(self):
@@ -32,13 +32,13 @@ class BaseDataModule(LightningDataModule):
             self.test_dataset,
             batch_size=self.config.batch_size,
             shuffle=False,
-            # num_workers=self.num_workers,
+            num_workers=self.num_workers,
         )
 
 
 class MNISTDataModule(BaseDataModule):
     def __init__(self, config):
-        super().__init__()
+        super().__init__(config.num_workers)
         self.config = config
         # define x and y transforms
         self.x_transform = transforms.Compose(
@@ -74,7 +74,7 @@ class MNISTDataModule(BaseDataModule):
 
 class FashionMNISTDataModule(BaseDataModule):
     def __init__(self, config):
-        super().__init__()
+        super().__init__(config.num_workers)
         self.config = config
         # define x and y transforms
         self.x_transform = transforms.Compose(
@@ -110,7 +110,7 @@ class FashionMNISTDataModule(BaseDataModule):
 
 class CIFAR10DataModule(BaseDataModule):
     def __init__(self, config):
-        super().__init__()
+        super().__init__(config.num_workers)
         self.config = config
         # define x and y transforms
         self.x_transform = transforms.Compose(
@@ -148,7 +148,7 @@ class CIFAR10DataModule(BaseDataModule):
 
 class CIFAR100DataModule(BaseDataModule):
     def __init__(self, config):
-        super().__init__()
+        super().__init__(config.num_workers)
         self.config = config
         # define x and y transforms
         self.x_transform = transforms.Compose(

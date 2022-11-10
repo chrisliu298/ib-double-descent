@@ -54,6 +54,7 @@ def parse_args():
         "--optimizer", type=str, default="adam", choices=["adam", "sgd"]
     )
     parser.add_argument("--wd", type=float, default=0.0)
+    parser.add_argument("--num_workers", type=int, default=0)
     # experiment
     parser.add_argument("--seed", type=int)
     parser.add_argument("--verbose", type=int, default=0)
