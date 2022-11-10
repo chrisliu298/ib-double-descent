@@ -19,8 +19,8 @@ def weight_norm(module):
     # calculate per-layer weight norm
     for pn, p in module.named_parameters():
         norms[f"weight_norm_{pn}"] = p.data.norm(p=2)
-        # here we directly compute the sum of the squared to avoid
-        # appending the entire tensor to the list
+        # here we directly compute the sum of the squares to avoid
+        # appending the entire weight vector to the list to save memory
         weights.append(p.data.flatten().pow(2).sum())
     # calculate total weight norm
     # here we only need to sum the list of squared weights and take the sqrt
@@ -39,8 +39,8 @@ def grad_norm(module):
     for pn, p in module.named_parameters():
         if p.grad is not None:  # some parameters may not have gradients
             norms[f"grad_norm_{pn}"] = p.grad.data.norm(p=2)
-            # here we directly compute the sum of the squared to avoid
-            # appending the entire tensor to the list
+            # here we directly compute the sum of the squares to avoid
+            # appending the entire weight vector to the list to save memory
             grads.append(p.grad.data.flatten().pow(2).sum())
     # calculate total gradient norm
     # here we only need to sum the list of squared gradients and take the sqrt
