@@ -16,7 +16,7 @@ class BaseDataModule(LightningDataModule):
             self.train_dataset,
             batch_size=self.config.batch_size,
             shuffle=True,
-            num_workers=self.num_workers,
+            # num_workers=self.num_workers,
         )
 
     def val_dataloader(self):
@@ -24,7 +24,7 @@ class BaseDataModule(LightningDataModule):
             self.test_dataset,
             batch_size=self.config.batch_size,
             shuffle=False,
-            num_workers=self.num_workers,
+            # num_workers=self.num_workers,
         )
 
     def test_dataloader(self):
@@ -32,7 +32,7 @@ class BaseDataModule(LightningDataModule):
             self.test_dataset,
             batch_size=self.config.batch_size,
             shuffle=False,
-            num_workers=self.num_workers,
+            # num_workers=self.num_workers,
         )
 
 
