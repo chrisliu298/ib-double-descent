@@ -35,6 +35,7 @@ def parse_args():
     # model
     parser.add_argument("--model", type=str, required=True, choices=MODELS.keys())
     parser.add_argument("--width", type=int, default=128)
+    parser.add_argument("--depth", type=int, default=5)
     parser.add_argument("--input_size", type=int, default=784)
     parser.add_argument("--output_size", type=int, default=10)
     # parser.add_argument("--layer_config", type=str, default="768x512x256x128x10")
@@ -61,7 +62,9 @@ def parse_args():
     config = EasyDict(vars(parser.parse_args()))
     # assign layer config
     config.layer_config = "x".join(
-        [str(config.input_size)] + [str(config.width)] * 4 + [str(config.output_size)]
+        [str(config.input_size)]
+        + [str(config.width)] * (config.depth - 1)
+        + [str(config.output_size)]
     )
     return config
 
