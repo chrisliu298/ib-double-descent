@@ -1,3 +1,4 @@
+import numpy as np
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader
 from torchvision import transforms
@@ -5,14 +6,15 @@ from torchvision.datasets import CIFAR10, CIFAR100, MNIST, FashionMNIST
 
 
 class BaseDataModule(LightningDataModule):
-    def __init__(self, num_workers):
+    def __init__(self, batch_size, num_workers):
         super().__init__()
+        self.batch_size = batch_size
         self.num_workers = num_workers  # os.cpu_count()
 
     def train_dataloader(self):
         return DataLoader(
             self.train_dataset,
-            batch_size=self.config.batch_size,
+            batch_size=self.batch_size,
             shuffle=True,
             num_workers=self.num_workers,
         )
@@ -20,7 +22,7 @@ class BaseDataModule(LightningDataModule):
     def val_dataloader(self):
         return DataLoader(
             self.test_dataset,
-            batch_size=self.config.batch_size,
+            batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
         )
@@ -28,15 +30,27 @@ class BaseDataModule(LightningDataModule):
     def test_dataloader(self):
         return DataLoader(
             self.test_dataset,
-            batch_size=self.config.batch_size,
+            batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
         )
 
+    def add_label_noise(self, labels, noise_level, num_classes):
+        labels_type = type(labels)
+        labels = np.array(labels)
+        # indices for noisy labels
+        mask = np.random.rand(len(labels)) < noise_level
+        # generate random labels
+        random_labels = np.random.choice(num_classes, mask.sum())
+        labels[mask] = random_labels
+        # convert back to original labels format
+        labels = [int(x) for x in labels]
+        return labels_type(labels)
+
 
 class MNISTDataModule(BaseDataModule):
     def __init__(self, config):
-        super().__init__(config.num_workers)
+        super().__init__(config.batch_size, config.num_workers)
         self.config = config
         # define x and y transforms
         self.x_transform = transforms.Compose(
@@ -68,11 +82,17 @@ class MNISTDataModule(BaseDataModule):
             transform=self.x_transform,
             target_transform=self.y_transform,
         )
+        if self.config.label_noise > 0.0:
+            self.train_dataset.targets = self.add_label_noise(
+                self.train_dataset.targets,
+                self.config.label_noise,
+                self.config.num_classes,
+            )
 
 
 class FashionMNISTDataModule(BaseDataModule):
     def __init__(self, config):
-        super().__init__(config.num_workers)
+        super().__init__(config.batch_size, config.num_workers)
         self.config = config
         # define x and y transforms
         self.x_transform = transforms.Compose(
@@ -104,11 +124,17 @@ class FashionMNISTDataModule(BaseDataModule):
             transform=self.x_transform,
             target_transform=self.y_transform,
         )
+        if self.config.label_noise > 0.0:
+            self.train_dataset.targets = self.add_label_noise(
+                self.train_dataset.targets,
+                self.config.label_noise,
+                self.config.num_classes,
+            )
 
 
 class CIFAR10DataModule(BaseDataModule):
     def __init__(self, config):
-        super().__init__(config.num_workers)
+        super().__init__(config.batch_size, config.num_workers)
         self.config = config
         # define x and y transforms
         self.x_transform = transforms.Compose(
@@ -142,11 +168,17 @@ class CIFAR10DataModule(BaseDataModule):
             transform=self.x_transform,
             target_transform=self.y_transform,
         )
+        if self.config.label_noise > 0.0:
+            self.train_dataset.targets = self.add_label_noise(
+                self.train_dataset.targets,
+                self.config.label_noise,
+                self.config.num_classes,
+            )
 
 
 class CIFAR100DataModule(BaseDataModule):
     def __init__(self, config):
-        super().__init__(config.num_workers)
+        super().__init__(config.batch_size, config.num_workers)
         self.config = config
         # define x and y transforms
         self.x_transform = transforms.Compose(
@@ -180,3 +212,9 @@ class CIFAR100DataModule(BaseDataModule):
             transform=self.x_transform,
             target_transform=self.y_transform,
         )
+        if self.config.label_noise > 0.0:
+            self.train_dataset.targets = self.add_label_noise(
+                self.train_dataset.targets,
+                self.config.label_noise,
+                self.config.num_classes,
+            )

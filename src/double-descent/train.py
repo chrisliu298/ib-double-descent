@@ -32,7 +32,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     # dataset
     parser.add_argument("--dataset", type=str, required=True, choices=DATASETS.keys())
-    parser.add_argument("--project_id", type=str, default="dnn-mi")
+    parser.add_argument("--noise_level", type=float, default=0.0)
     # model
     parser.add_argument("--model", type=str, required=True, choices=MODELS.keys())
     parser.add_argument("--width", type=int, default=128)
@@ -57,6 +57,7 @@ def parse_args():
     parser.add_argument("--wd", type=float, default=0.0)
     parser.add_argument("--num_workers", default="full")
     # experiment
+    parser.add_argument("--project_id", type=str, default="dnn-mi")
     parser.add_argument("--seed", type=int)
     parser.add_argument("--verbose", type=int, default=0)
     parser.add_argument("--wandb", action="store_true")
