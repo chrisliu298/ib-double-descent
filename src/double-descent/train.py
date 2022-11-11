@@ -1,4 +1,5 @@
 import argparse
+import os
 
 import torch
 import wandb
@@ -54,7 +55,7 @@ def parse_args():
         "--optimizer", type=str, default="adam", choices=["adam", "sgd"]
     )
     parser.add_argument("--wd", type=float, default=0.0)
-    parser.add_argument("--num_workers", type=int, default=0)
+    parser.add_argument("--num_workers", default="full")
     # experiment
     parser.add_argument("--seed", type=int)
     parser.add_argument("--verbose", type=int, default=0)
@@ -67,6 +68,8 @@ def parse_args():
         + [str(config.width)] * (config.depth - 1)
         + [str(config.output_size)]
     )
+    if config.num_workers == "full":
+        config.num_workers = os.cpu_count()
     return config
 
 
