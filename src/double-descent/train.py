@@ -32,7 +32,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     # dataset
     parser.add_argument("--dataset", type=str, required=True, choices=DATASETS.keys())
-    parser.add_argument("--noise_level", type=float, default=0.0)
+    parser.add_argument("--label_noise", type=float, default=0.0)
     # model
     parser.add_argument("--model", type=str, required=True, choices=MODELS.keys())
     parser.add_argument("--width", type=int, default=128)
