@@ -1,4 +1,5 @@
 import torch
+from torchvision import transforms
 
 # These lr schedules below have theoretically guaranteed convergence.
 # However, they need to match the corresponding optimizer.
@@ -46,3 +47,13 @@ def grad_norm(module):
     # here we only need to sum the list of squared gradients and take the sqrt
     norms["grad_norm_all"] = torch.stack(grads).sum().sqrt()
     return norms
+
+
+def one_hot_transform(num_classes):
+    return transforms.Compose(
+        [
+            lambda x: torch.tensor(x),
+            lambda x: torch.nn.functional.one_hot(x, num_classes=num_classes),
+            lambda x: x.float(),
+        ]
+    )

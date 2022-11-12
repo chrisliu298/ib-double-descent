@@ -4,6 +4,8 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100, MNIST, FashionMNIST
 
+from utils import one_hot_transform
+
 
 class BaseDataModule(LightningDataModule):
     def __init__(self, batch_size, num_workers):
@@ -59,7 +61,9 @@ class MNISTDataModule(BaseDataModule):
                 transforms.Normalize((0.1307,), (0.3081,)),
             ]
         )
-        self.y_transform = None
+        self.y_transform = (
+            one_hot_transform(config.num_classes) if config.loss == "mse" else None
+        )
         self.wh = 28
         self.ch = 1
 
@@ -101,7 +105,9 @@ class FashionMNISTDataModule(BaseDataModule):
                 transforms.Normalize((0.2860,), (0.3530,)),
             ]
         )
-        self.y_transform = None
+        self.y_transform = (
+            one_hot_transform(config.num_classes) if config.loss == "mse" else None
+        )
         self.wh = 28
         self.ch = 1
 
@@ -145,7 +151,9 @@ class CIFAR10DataModule(BaseDataModule):
                 ),
             ]
         )
-        self.y_transform = None
+        self.y_transform = (
+            one_hot_transform(config.num_classes) if config.loss == "mse" else None
+        )
         self.wh = 32
         self.ch = 3
 
@@ -189,7 +197,9 @@ class CIFAR100DataModule(BaseDataModule):
                 ),
             ]
         )
-        self.y_transform = None
+        self.y_transform = (
+            one_hot_transform(config.num_classes) if config.loss == "mse" else None
+        )
         self.wh = 32
         self.ch = 3
 

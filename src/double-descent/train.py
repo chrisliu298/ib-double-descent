@@ -44,6 +44,7 @@ def parse_args():
         "--activation", type=str, default="tanh", choices=["relu", "tanh", "sigmoid"]
     )
     # training
+    parser.add_argument("--loss", type=str, default="ce", choices=["ce", "mse"])
     parser.add_argument("--batch_size", type=int, default=128)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument(

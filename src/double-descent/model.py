@@ -39,7 +39,11 @@ class BaseModel(LightningModule):
     def evaluate(self, batch, stage=None):
         x, y = batch
         y_hat = self(x)
-        loss = F.cross_entropy(y_hat, y)
+        if self.config.loss == "ce":
+            loss = F.cross_entropy(y_hat, y)
+        elif self.config.loss == "mse":
+            loss = F.mse_loss(y_hat, y)
+            y = y.argmax(dim=1)
         acc = accuracy(y_hat.argmax(dim=1), y)
         self.log_dict({f"{stage}_loss": loss, f"{stage}_acc": acc}, logger=True)
         return loss, acc
