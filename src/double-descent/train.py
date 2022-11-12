@@ -64,11 +64,18 @@ def parse_args():
     # convert to an easydict object
     config = EasyDict(vars(parser.parse_args()))
     # assign layer config
-    config.layer_config = "x".join(
-        [str(config.input_size)]
-        + [str(config.width)] * (config.depth - 1)
-        + [str(config.num_classes)]
-    )
+    if config.model == "fcn":
+        config.layer_config = "x".join(
+            [str(config.input_size)]
+            + [str(config.width)] * (config.depth - 1)
+            + [str(config.num_classes)]
+        )
+    elif config.model == "cnn":
+        config.layer_config = "x".join(
+            [str(config.input_size)]
+            + [str(config.width * 2**i) for i in range(config.depth - 1)]
+            + [str(config.num_classes)]
+        )
     if config.num_workers == "full":
         config.num_workers = os.cpu_count()
     return config
