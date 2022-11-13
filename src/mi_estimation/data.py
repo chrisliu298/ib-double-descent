@@ -45,11 +45,11 @@ class BaseDataModule(LightningDataModule):
 class ToyDatasetDataModule(BaseDataModule):
     def __init__(self, config):
         super().__init__(config)
-        self.root = config.root
+        self.data_path = config.data_path
 
     def setup(self, stage=None):
-        assert os.path.isfile(self.root), f"{self.root} does not exist."
-        data = sio.loadmat(self.root)
+        assert os.path.isfile(self.data_path), f"{self.data_path} does not exist."
+        data = sio.loadmat(self.data_path)
         x, y = data["F"], data["y"]
         x = torch.from_numpy(x).float()
         y = torch.from_numpy(y).squeeze().long()

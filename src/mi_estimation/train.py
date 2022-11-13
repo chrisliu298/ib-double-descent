@@ -15,7 +15,7 @@ def parse_args():
     # parse command line arguments
     parser = argparse.ArgumentParser()
     # dataset
-    parser.add_argument("--root", type=str, required=True)
+    parser.add_argument("--data_path", type=str, required=True)
     # model
     parser.add_argument("--layer_shapes", type=str, default="12x10x7x5x4x3x2")
     parser.add_argument(
