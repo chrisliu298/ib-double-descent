@@ -58,12 +58,13 @@ class BaseModel(LightningModule):
         self.log_dict({"avg_val_acc": acc, "avg_val_loss": loss}, logger=True)
         if self.config.log_mi:
             # estimate mutual information
-            x_train = self.trainer.datamodule.x_train.to(self.device)
-            y_train = self.trainer.datamodule.y_train.to(self.device)
-            x_train_id = self.trainer.datamodule.x_train_id.to(self.device)
+            x_train = self.trainer.datamodule.x_train
+            y_train = self.trainer.datamodule.y_train
+            x_train_id = self.trainer.datamodule.x_train_id
             with torch.no_grad():
-                _, Ts = self(x_train)
+                _, Ts = self(x_train.to(self.device))
             for layer_idx, t in enumerate(Ts, 1):
+                t = t.cpu()
                 i_xt, i_yt = calculate_layer_mi(
                     t, self.config.num_bins, self.config.activation, x_train_id, y_train
                 )

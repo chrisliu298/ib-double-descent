@@ -1,4 +1,5 @@
 from collections import Counter
+from math import log2
 
 import torch
 
@@ -29,10 +30,10 @@ def calculate_layer_mi(layer_out, num_bins, activation, x_id, y):
         pdf_yt[(y[i].item(),) + tuple(indices[i, :].tolist())] += 1 / num_samples
         pdf_t[tuple(indices[i, :].tolist())] += 1 / num_samples
     i_xt = sum(
-        pdf_xt[i] * torch.log2(pdf_xt[i] / (pdf_x[i[0]] * pdf_t[i[1:]])) for i in pdf_xt
+        pdf_xt[i] * log2(pdf_xt[i] / (pdf_x[i[0]] * pdf_t[i[1:]])) for i in pdf_xt
     )
     i_yt = sum(
-        pdf_yt[i] * torch.log2(pdf_yt[i] / (pdf_y[i[0]] * pdf_t[i[1:]])) for i in pdf_yt
+        pdf_yt[i] * log2(pdf_yt[i] / (pdf_y[i[0]] * pdf_t[i[1:]])) for i in pdf_yt
     )
     return i_xt, i_yt
 
