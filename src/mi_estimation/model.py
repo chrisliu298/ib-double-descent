@@ -1,3 +1,4 @@
+import wandb
 import datetime
 
 import matplotlib.pyplot as plt
@@ -119,6 +120,7 @@ class BaseModel(LightningModule):
             fig.colorbar(a, label="Epoch")
             fig.savefig(f"mi_{current_time}.pdf", bbox_inches="tight")
             fig.savefig(f"mi_{current_time}.png", bbox_inches="tight", dpi=600)
+            wandb.log({"information_plane": fig})
 
     def configure_optimizers(self):
         if self.config.optimizer == "adam":
