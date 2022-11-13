@@ -48,13 +48,15 @@ class BaseModel(LightningModule):
         return {"loss": loss, "train_acc": acc}
 
     def on_after_backward(self):
-        self.log_dict(grad_norm(self), logger=True)
+        if self.config.log_grad_norm:
+            self.log_dict(grad_norm(self), logger=True)
 
     def training_epoch_end(self, outputs):
         loss = torch.stack([i["loss"] for i in outputs]).double().mean()
         acc = torch.stack([i["train_acc"] for i in outputs]).double().mean()
         self.log_dict({"avg_train_acc": acc, "avg_train_loss": loss}, logger=True)
-        self.log_dict(weight_norm(self), logger=True)
+        if self.config.log_weight_norm:
+            self.log_dict(weight_norm(self), logger=True)
         if self.config.log_mi:
             # estimate mutual information
             x_train = self.trainer.datamodule.x_train

@@ -31,13 +31,15 @@ def parse_args():
     )
     parser.add_argument("--num_workers", default="full")
     # mi estimation
-    parser.add_argument("--log_mi", action="store_true")
     parser.add_argument("--num_bins", type=int, default=30)
     # experiment
     parser.add_argument("--project_id", type=str, default="dnn-mi")
     parser.add_argument("--seed", type=int)
     parser.add_argument("--verbose", type=int, default=0)
     parser.add_argument("--wandb", action="store_true")
+    parser.add_argument("--log_mi", action="store_true")
+    parser.add_argument("--log_grad_norm", action="store_true")
+    parser.add_argument("--log_weight_norm", action="store_true")
     # convert to an easydict object
     config = EasyDict(vars(parser.parse_args()))
     return config
