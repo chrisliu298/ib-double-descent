@@ -1,12 +1,9 @@
 import os
 
-import numpy as np
 import scipy.io as sio
 import torch
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader, TensorDataset
-from torchvision import transforms
-from torchvision.datasets import MNIST, FashionMNIST
 
 from utils import train_test_split
 
@@ -45,11 +42,11 @@ class BaseDataModule(LightningDataModule):
 class ToyDatasetDataModule(BaseDataModule):
     def __init__(self, config):
         super().__init__(config)
-        self.data_path = config.data_path
+        self.dataset_path = config.dataset_path
 
     def setup(self, stage=None):
-        assert os.path.isfile(self.data_path), f"{self.data_path} does not exist."
-        data = sio.loadmat(self.data_path)
+        assert os.path.isfile(self.dataset_path), f"{self.dataset_path} does not exist."
+        data = sio.loadmat(self.dataset_path)
         x, y = data["F"], data["y"]
         x = torch.from_numpy(x).float()
         y = torch.from_numpy(y).squeeze().long()

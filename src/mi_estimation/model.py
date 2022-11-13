@@ -8,7 +8,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import wandb
-from matplotlib import colors
 from pytorch_lightning import LightningModule
 from torchinfo import summary
 from torchmetrics.functional import accuracy
