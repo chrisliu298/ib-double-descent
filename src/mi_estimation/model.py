@@ -71,6 +71,8 @@ class BaseModel(LightningModule):
                 # self.log(f"l{layer_idx}_i_yt", i_yt, logger=True)
                 layer_i_xt_at_epoch[f"l{layer_idx}_i_xt"] = i_xt
                 layer_i_yt_at_epoch[f"l{layer_idx}_i_yt"] = i_yt
+            layer_i_xt_at_epoch["epoch"] = self.current_epoch
+            layer_i_yt_at_epoch["epoch"] = self.current_epoch
             self.layer_i_xt.append(layer_i_xt_at_epoch)
             self.layer_i_yt.append(layer_i_yt_at_epoch)
 
@@ -99,6 +101,7 @@ class BaseModel(LightningModule):
         df_i_xt.to_csv(f"i_xt_{current_time}.csv", index=False)
         df_i_yt = pd.DataFrame(self.layer_i_yt)
         df_i_yt.to_csv(f"i_yt_{current_time}.csv", index=False)
+        # plot information plane
         fig, ax = plt.subplots(figsize=(8, 6))
         ax.set_xlabel(r"$I(X; T)$")
         ax.set_ylabel(r"$I(Y; T)$")
