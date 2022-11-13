@@ -30,8 +30,15 @@ class FCN(nn.Module):
 
 def generate_data(input_size):
     """
-    X = binary(num) mod 64
-    y = rand_group(X)
+    This data set is created as follows:
+
+    X = binary(num) where num in [0, 2**input_size)
+    Y = rand_group[X mod sqrt(2**input_size)]
+
+    If input_size = 10, num_samples = 1024, num_groups = 32, binary_group_size = 16.
+
+    The random group assignment for the labels is done by taking the i-th index of
+    a permuted 0-1 vector, where i is the results of the modulo operation.
     """
     num_samples = 2**input_size
     num_groups = np.sqrt(num_samples)
@@ -39,17 +46,16 @@ def generate_data(input_size):
     groups = np.append(np.zeros(binary_group_size), np.ones(binary_group_size))
     np.random.shuffle(groups)
 
-    x_data = np.zeros((num_samples, input_size))
-    x_int = np.zeros(num_samples)
-    y_data = np.zeros(num_samples)
+    x_bin = np.zeros((num_samples, input_size))
+    x_dec = np.zeros(num_samples)
+    y = np.zeros(num_samples)
 
     for i in range(num_samples):
-        bin_repr = [int(b) for b in list("{0:b}".format(i).zfill(input_size))]
-        x_data[i, :] = bin_repr
-        x_int[i] = i
-        y_data[i] = groups[i % int(num_groups)]
+        x_bin[i, :] = [int(b) for b in list("{:b}".format(i).zfill(input_size))]
+        x_dec[i] = i
+        y[i] = groups[i % int(num_groups)]
 
-    return x_data, y_data.astype(int), x_int
+    return x_bin, y.astype(int), x_dec
 
 
 # parameters
