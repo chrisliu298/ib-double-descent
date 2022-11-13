@@ -12,7 +12,7 @@ from pytorch_lightning import LightningModule
 from torchinfo import summary
 from torchmetrics.functional import accuracy
 
-from utils import calculate_layer_mi, grad_norm, weight_norm
+from utils import calculate_layer_mi, grad_norm, weight_norm, log_now
 
 
 class BaseModel(LightningModule):
@@ -57,7 +57,7 @@ class BaseModel(LightningModule):
         self.log_dict({"avg_train_acc": acc, "avg_train_loss": loss}, logger=True)
         if self.config.log_weight_norm:
             self.log_dict(weight_norm(self), logger=True)
-        if self.config.log_mi:
+        if self.config.log_mi and log_now(self.current_epoch):
             # estimate mutual information
             x_train = self.trainer.datamodule.x_train
             y_train = self.trainer.datamodule.y_train

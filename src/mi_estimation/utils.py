@@ -75,3 +75,16 @@ def grad_norm(module):
     # here we only need to sum the list of squared gradients and take the sqrt
     norms["grad_norm_all"] = torch.stack(grads).sum().sqrt()
     return norms
+
+
+def log_now(epoch):
+    # Taken from https://github.com/artemyk/ibsgd/tree/iclr2018
+    # Only log activity for some epochs.  Mainly this is to make things run faster.
+    if epoch < 20:  # Log for all first 20 epochs
+        return True
+    elif epoch < 100:  # Then for every 5th epoch
+        return epoch % 5 == 0
+    elif epoch < 2000:  # Then every 10th
+        return epoch % 20 == 0
+    else:  # Then every 100th
+        return epoch % 100 == 0
