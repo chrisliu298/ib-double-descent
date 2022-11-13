@@ -70,8 +70,6 @@ class BaseModel(LightningModule):
                 i_xt, i_yt = calculate_layer_mi(
                     t, self.config.num_bins, self.config.activation, x_train_id, y_train
                 )
-                # self.log(f"l{layer_idx}_i_xt", i_xt, logger=True)
-                # self.log(f"l{layer_idx}_i_yt", i_yt, logger=True)
                 layer_i_xt_at_epoch[f"l{layer_idx}_i_xt"] = i_xt
                 layer_i_yt_at_epoch[f"l{layer_idx}_i_yt"] = i_yt
             self.layer_i_xt.append(layer_i_xt_at_epoch)
@@ -103,6 +101,8 @@ class BaseModel(LightningModule):
             df_i_xt.to_csv(f"i_xt_{current_time}.csv", index=False)
             df_i_yt = pd.DataFrame(self.layer_i_yt)
             df_i_yt.to_csv(f"i_yt_{current_time}.csv", index=False)
+            wandb.log({"i_xt": wandb.Table(dataframe=df_i_xt)})
+            wandb.log({"i_yt": wandb.Table(dataframe=df_i_yt)})
             # plot information plane
             fig, ax = plt.subplots(figsize=(8, 6))
             ax.set_xlabel(r"$I(X; T)$")
@@ -118,9 +118,17 @@ class BaseModel(LightningModule):
                     norm=colors.LogNorm(vmin=1, vmax=df_i_xt["epoch"].max()),
                 )
             fig.colorbar(a, label="Epoch")
-            fig.savefig(f"mi_{current_time}.pdf", bbox_inches="tight")
-            fig.savefig(f"mi_{current_time}.png", bbox_inches="tight", dpi=600)
-            wandb.log({"information_plane": fig})
+            fig.savefig(f"information_plane_{current_time}.pdf", bbox_inches="tight")
+            fig.savefig(
+                f"information_plane_{current_time}.png", bbox_inches="tight", dpi=600
+            )
+            wandb.log(
+                {
+                    "information_plane": wandb.Image(
+                        f"information_plane_{current_time}.png"
+                    )
+                }
+            )
 
     def configure_optimizers(self):
         if self.config.optimizer == "adam":
