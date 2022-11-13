@@ -118,7 +118,7 @@ class BaseModel(LightningModule):
                     s=50,
                     c=df_i_xt["epoch"],
                     cmap="viridis",
-                    norm=colors.LogNorm(vmin=1, vmax=df_i_xt["epoch"].max()),
+                    # norm=colors.LogNorm(vmin=1, vmax=df_i_xt["epoch"].max()),
                 )
             fig.colorbar(a, label="Epoch")
             fig.savefig(f"information_plane_{current_time}.pdf", bbox_inches="tight")
