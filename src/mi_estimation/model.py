@@ -62,6 +62,8 @@ class BaseModel(LightningModule):
             with torch.no_grad():
                 _, Ts = self(x_train.to(self.device))
             layer_i_xt_at_epoch, layer_i_yt_at_epoch = {}, {}
+            layer_i_xt_at_epoch["epoch"] = self.current_epoch
+            layer_i_yt_at_epoch["epoch"] = self.current_epoch
             for layer_idx, t in enumerate(Ts, 1):
                 t = t.cpu()
                 i_xt, i_yt = calculate_layer_mi(
@@ -71,8 +73,6 @@ class BaseModel(LightningModule):
                 # self.log(f"l{layer_idx}_i_yt", i_yt, logger=True)
                 layer_i_xt_at_epoch[f"l{layer_idx}_i_xt"] = i_xt
                 layer_i_yt_at_epoch[f"l{layer_idx}_i_yt"] = i_yt
-            layer_i_xt_at_epoch["epoch"] = self.current_epoch
-            layer_i_yt_at_epoch["epoch"] = self.current_epoch
             self.layer_i_xt.append(layer_i_xt_at_epoch)
             self.layer_i_yt.append(layer_i_yt_at_epoch)
 
@@ -95,29 +95,30 @@ class BaseModel(LightningModule):
         self.log_dict({"avg_test_acc": acc, "avg_test_loss": loss}, logger=True)
 
     def on_train_end(self):
-        # save mutual information to csv and plot
-        current_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        df_i_xt = pd.DataFrame(self.layer_i_xt)
-        df_i_xt.to_csv(f"i_xt_{current_time}.csv", index=False)
-        df_i_yt = pd.DataFrame(self.layer_i_yt)
-        df_i_yt.to_csv(f"i_yt_{current_time}.csv", index=False)
-        # plot information plane
-        fig, ax = plt.subplots(figsize=(8, 6))
-        ax.set_xlabel(r"$I(X; T)$")
-        ax.set_ylabel(r"$I(Y; T)$")
-        num_layers = self.config.layer_shapes.count("x")
-        for i in range(num_layers):
-            a = ax.scatter(
-                df_i_xt[f"l{i+1}_i_xt"],
-                df_i_yt[f"l{i+1}_i_yt"],
-                s=50,
-                c=df_i_xt["epoch"],
-                cmap="plasma",
-                norm=colors.LogNorm(vmin=1, vmax=df_i_xt["epoch"].max()),
-            )
-        fig.colorbar(a, label="Epoch")
-        fig.savefig(f"mi_{current_time}.pdf", bbox_inches="tight")
-        fig.savefig(f"mi_{current_time}.png", bbox_inches="tight", dpi=600)
+        if self.config.log_mi:
+            # save mutual information to csv and plot
+            current_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+            df_i_xt = pd.DataFrame(self.layer_i_xt)
+            df_i_xt.to_csv(f"i_xt_{current_time}.csv", index=False)
+            df_i_yt = pd.DataFrame(self.layer_i_yt)
+            df_i_yt.to_csv(f"i_yt_{current_time}.csv", index=False)
+            # plot information plane
+            fig, ax = plt.subplots(figsize=(8, 6))
+            ax.set_xlabel(r"$I(X; T)$")
+            ax.set_ylabel(r"$I(Y; T)$")
+            num_layers = self.config.layer_shapes.count("x")
+            for i in range(num_layers):
+                a = ax.scatter(
+                    df_i_xt[f"l{i+1}_i_xt"],
+                    df_i_yt[f"l{i+1}_i_yt"],
+                    s=50,
+                    c=df_i_xt["epoch"],
+                    cmap="viridis",
+                    norm=colors.LogNorm(vmin=1, vmax=df_i_xt["epoch"].max()),
+                )
+            fig.colorbar(a, label="Epoch")
+            fig.savefig(f"mi_{current_time}.pdf", bbox_inches="tight")
+            fig.savefig(f"mi_{current_time}.png", bbox_inches="tight", dpi=600)
 
     def configure_optimizers(self):
         if self.config.optimizer == "adam":
