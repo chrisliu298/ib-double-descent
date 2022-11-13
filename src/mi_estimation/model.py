@@ -1,5 +1,5 @@
-import wandb
 import datetime
+from math import sqrt
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -7,12 +7,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+import wandb
 from matplotlib import colors
 from pytorch_lightning import LightningModule
 from torchinfo import summary
 from torchmetrics.functional import accuracy
 
-from utils import calculate_layer_mi, grad_norm, weight_norm, log_now
+from utils import calculate_layer_mi, grad_norm, log_now, weight_norm
 
 
 class BaseModel(LightningModule):
@@ -149,10 +150,14 @@ class FCN(BaseModel):
         self._layers = []
         for i in range(1, len(layer_shapes) - 1):
             layer = nn.Linear(layer_shapes[i - 1], layer_shapes[i])
+            nn.init.trunc_normal_(layer.weight, mean=0, std=sqrt(1 / layer_shapes[i]))
+            nn.init.zeros_(layer.bias)
             self._layers.append(layer)
             self.add_module(f"layer{i}", layer)
         # last layer
         self.fc = nn.Linear(layer_shapes[-2], layer_shapes[-1])
+        nn.init.trunc_normal_(self.fc.weight, mean=0, std=sqrt(1 / layer_shapes[-1]))
+        nn.init.zeros_(self.fc.bias)
         # choose activation function
         if config.activation == "relu":
             self.activation = torch.relu
