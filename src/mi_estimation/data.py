@@ -39,7 +39,7 @@ class BaseDataModule(LightningDataModule):
         )
 
 
-class ToyDatasetDataModule(BaseDataModule):
+class SZTDataModule(BaseDataModule):
     def __init__(self, config):
         super().__init__(config)
         self.dataset_path = config.dataset_path

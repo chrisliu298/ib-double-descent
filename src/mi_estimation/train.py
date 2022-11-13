@@ -7,7 +7,7 @@ from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 
-from data import ToyDatasetDataModule
+from data import SZTDataModule
 from model import FCN
 
 
@@ -54,7 +54,7 @@ def main():
     if config.seed is not None:
         seed_everything(config.seed)
     # initialize data module
-    datamodule = ToyDatasetDataModule(config)
+    datamodule = SZTDataModule(config)
     # initialize model
     model = FCN(config)
     # setup trainer
