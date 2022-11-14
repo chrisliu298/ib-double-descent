@@ -70,7 +70,7 @@ def plot_mi(df_i, num_cols, timestamp):
         plt.scatter(
             df_i[f"l{i+1}_i_xt"],
             df_i[f"l{i+1}_i_yt"],
-            s=200,
+            s=400,
             c=df_i["epoch"],
             cmap="viridis",
             norm=mpl.colors.LogNorm(vmin=1, vmax=df_i["epoch"].max()),
