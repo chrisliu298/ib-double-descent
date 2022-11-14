@@ -10,10 +10,10 @@ from utils import standardize, train_test_split
 
 
 class BaseDataModule(LightningDataModule):
-    def __init__(self, config):
+    def __init__(self, cfg):
         super().__init__()
-        self.batch_size = config.batch_size
-        self.num_workers = config.num_workers
+        self.batch_size = cfg.batch_size
+        self.num_workers = cfg.num_workers
 
     def train_dataloader(self):
         return DataLoader(
@@ -47,16 +47,16 @@ class SZTDataModule(BaseDataModule):
     https://github.com/ravidziv/IDNNs.
     """
 
-    def __init__(self, config):
-        super().__init__(config)
-        self.config = config
+    def __init__(self, cfg):
+        super().__init__(cfg)
+        self.cfg = cfg
 
     def setup(self, stage=None):
         assert os.path.isfile(
-            f"datasets/{self.config.dataset}.mat"
-        ), f"datasets/{self.config.dataset}.mat not found."
+            f"datasets/{self.cfg.dataset}.mat"
+        ), f"datasets/{self.cfg.dataset}.mat not found."
         # Read and split data
-        data = sio.loadmat(f"datasets/{self.config.dataset}.mat")
+        data = sio.loadmat(f"datasets/{self.cfg.dataset}.mat")
         x, y = data["F"], data["y"]
         x = torch.from_numpy(x).float()
         y = torch.from_numpy(y).squeeze().long()
@@ -76,8 +76,8 @@ class SZTDataModule(BaseDataModule):
 
 
 class MNISTDataModule(BaseDataModule):
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, cfg):
+        super().__init__(cfg)
         self.transform = transforms.Compose(
             [
                 transforms.ToTensor(),

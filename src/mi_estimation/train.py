@@ -46,25 +46,25 @@ def parse_args():
     parser.add_argument("--log_grad_stats", action="store_true")
     parser.add_argument("--log_weight_stats", action="store_true")
     # Convert to an easydict object
-    config = EasyDict(vars(parser.parse_args()))
-    return config
+    cfg = EasyDict(vars(parser.parse_args()))
+    return cfg
 
 
 def main():
-    config = parse_args()
+    cfg = parse_args()
     # Set num workers
-    if config.num_workers == "full":
-        config.num_workers = os.cpu_count()
+    if cfg.num_workers == "full":
+        cfg.num_workers = os.cpu_count()
     # Set seed
-    if config.seed is not None:
-        seed_everything(config.seed)
+    if cfg.seed is not None:
+        seed_everything(cfg.seed)
     # Initialize data module
-    if "szt_" in config.dataset:
-        datamodule = SZTDataModule(config)
-    elif config.dataset == "mnist":
-        datamodule = MNISTDataModule(config)
+    if "szt_" in cfg.dataset:
+        datamodule = SZTDataModule(cfg)
+    elif cfg.dataset == "mnist":
+        datamodule = MNISTDataModule(cfg)
     # Initialize model
-    model = FCN(config)
+    model = FCN(cfg)
     # Setup trainer
     callbacks = [
         LearningRateMonitor(logging_interval="step"),
@@ -76,24 +76,24 @@ def main():
         ),
     ]
     logger = WandbLogger(
-        offline=not config.wandb,
-        project=config.project_id,
+        offline=not cfg.wandb,
+        project=cfg.project_id,
         entity="ib-double-descent",
-        config=config,
+        cfg=cfg,
     )
     trainer = Trainer(
         accelerator="gpu",
         devices=-1,
         callbacks=callbacks,
-        max_epochs=config.max_epochs,
+        max_epochs=cfg.max_epochs,
         check_val_every_n_epoch=1,
         benchmark=True,
         logger=logger,
-        enable_progress_bar=config.verbose > 0,
+        enable_progress_bar=cfg.verbose > 0,
     )
     # Train and test
     trainer.fit(model=model, datamodule=datamodule)
-    trainer.test(model=model, datamodule=datamodule, verbose=config.verbose > 0)
+    trainer.test(model=model, datamodule=datamodule, verbose=cfg.verbose > 0)
     wandb.finish(quiet=True)
 
 

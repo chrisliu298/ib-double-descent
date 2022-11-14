@@ -17,9 +17,9 @@ from utils import calculate_layer_mi, grad_stats, log_now, plot_mi, weight_stats
 class BaseModel(LightningModule):
     """A lightning module that serves as a base class for all modules."""
 
-    def __init__(self, config):
+    def __init__(self, cfg):
         super().__init__()
-        self.config = config
+        self.cfg = cfg
         self.layer_mi = []
         self.weight_stats = []
         self.grad_stats = []
@@ -28,7 +28,7 @@ class BaseModel(LightningModule):
         """Log model summary and hyperparameters."""
         input_size = self.trainer.datamodule.x_train.shape[1]
         model_summary = summary(
-            self, input_size=(1, input_size), verbose=self.config.verbose
+            self, input_size=(1, input_size), verbose=self.cfg.verbose
         )
         self.log_dict(
             {
@@ -54,7 +54,7 @@ class BaseModel(LightningModule):
 
     def on_after_backward(self):
         """Log gradient stats."""
-        if self.config.log_grad_stats:
+        if self.cfg.log_grad_stats:
             self.log_dict(grad_stats(self), logger=True)
 
     def training_epoch_end(self, outputs):
@@ -62,10 +62,10 @@ class BaseModel(LightningModule):
         acc = torch.stack([i["train_acc"] for i in outputs]).double().mean()
         self.log_dict({"avg_train_acc": acc, "avg_train_loss": loss}, logger=True)
         # Log weight stats
-        if self.config.log_weight_stats:
+        if self.cfg.log_weight_stats:
             self.log_dict(weight_stats(self), logger=True)
         # Estimate mutual information
-        if self.config.log_mi and log_now(self.current_epoch):
+        if self.cfg.log_mi and log_now(self.current_epoch):
             x_train = self.trainer.datamodule.x_train
             y_train = self.trainer.datamodule.y_train
             x_train_id = self.trainer.datamodule.x_train_id
@@ -75,7 +75,7 @@ class BaseModel(LightningModule):
             for idx, t in enumerate(Ts, 1):
                 t = t.cpu()
                 i_xt, i_yt = calculate_layer_mi(
-                    t, self.config.num_bins, self.config.activation, x_train_id, y_train
+                    t, self.cfg.num_bins, self.cfg.activation, x_train_id, y_train
                 )
                 layer_mi_at_epoch[f"l{idx}_i_xt"] = i_xt
                 layer_mi_at_epoch[f"l{idx}_i_yt"] = i_yt
@@ -100,12 +100,12 @@ class BaseModel(LightningModule):
         self.log_dict({"avg_test_acc": acc, "avg_test_loss": loss}, logger=True)
 
     def on_train_end(self):
-        if self.config.log_mi:
+        if self.cfg.log_mi:
             # Save mutual information to csv and plot
             current_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
             df_mi = pd.DataFrame(self.layer_mi)
             df_mi.to_csv(f"layer_mi_{current_time}.csv", index=False)
-            plot_mi(df_mi, self.config.layer_shapes.count("x"), current_time)
+            plot_mi(df_mi, self.cfg.layer_shapes.count("x"), current_time)
             wandb.save(f"layer_mi_{current_time}.csv")  # save csv file
             wandb.log(
                 {
@@ -116,11 +116,11 @@ class BaseModel(LightningModule):
             )  # save information plane plot
 
     def configure_optimizers(self):
-        if self.config.optimizer == "adam":
-            optimizer = optim.Adam(self.parameters(), lr=self.config.lr)
-        elif self.config.optimizer == "sgd":
+        if self.cfg.optimizer == "adam":
+            optimizer = optim.Adam(self.parameters(), lr=self.cfg.lr)
+        elif self.cfg.optimizer == "sgd":
             optimizer = optim.SGD(
-                self.parameters(), lr=self.config.lr, momentum=self.config.momentum
+                self.parameters(), lr=self.cfg.lr, momentum=self.cfg.momentum
             )
         return optimizer
 
@@ -128,9 +128,9 @@ class BaseModel(LightningModule):
 class FCN(BaseModel):
     """Fully connected neural network."""
 
-    def __init__(self, config):
-        super().__init__(config)
-        layer_shapes = [int(x) for x in config.layer_shapes.split("x")]
+    def __init__(self, cfg):
+        super().__init__(cfg)
+        layer_shapes = [int(x) for x in cfg.layer_shapes.split("x")]
         self._layers = []
         # Input layer and hidden layers
         for i in range(1, len(layer_shapes) - 1):
@@ -144,11 +144,11 @@ class FCN(BaseModel):
         nn.init.trunc_normal_(self.fc.weight, mean=0, std=sqrt(1 / layer_shapes[-1]))
         nn.init.zeros_(self.fc.bias)
         # Choose activation function
-        if config.activation == "relu":
+        if cfg.activation == "relu":
             self.activation = nn.ReLU()
-        elif config.activation == "tanh":
+        elif cfg.activation == "tanh":
             self.activation = nn.Tanh()
-        elif config.activation == "sigmoid":
+        elif cfg.activation == "sigmoid":
             self.activation = nn.Sigmoid()
 
     def forward(self, x):
