@@ -89,7 +89,7 @@ def grad_stats(module):
             grads.append(p.grad.data.flatten())
     means["grad_mean_all"] = torch.cat(grads).mean()
     stds["grad_std_all"] = torch.cat(grads).std()
-    norms["grad_norm_all"] = torch.stack(grads).norm(p=2)
+    norms["grad_norm_all"] = torch.cat(grads).norm(p=2)
     return {**means, **stds, **norms}
 
 
