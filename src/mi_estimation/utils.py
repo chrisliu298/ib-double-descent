@@ -53,19 +53,19 @@ def calculate_layer_mi(layer_out, num_bins, activation, x_id, y):
     return i_xt, i_yt
 
 
-def plot_mi(df_i_xt, df_i_yt, num_cols, timestamp):
+def plot_mi(df_i, num_cols, timestamp):
     """Plot the mutual information for each layer."""
     plt.figure(figsize=(8, 6))
     plt.xlabel(r"$I(X; T)$")
     plt.ylabel(r"$I(Y; T)$")
     for i in range(num_cols):
         plt.scatter(
-            df_i_xt[f"l{i+1}_i_xt"],
-            df_i_yt[f"l{i+1}_i_yt"],
+            df_i[f"l{i+1}_i_xt"],
+            df_i[f"l{i+1}_i_yt"],
             s=50,
-            c=df_i_xt["epoch"],
+            c=df_i["epoch"],
             cmap="viridis",
-            norm=colors.LogNorm(vmin=1, vmax=df_i_xt["epoch"].max()),
+            norm=colors.LogNorm(vmin=1, vmax=df_i["epoch"].max()),
         )
     plt.colorbar(label="Epoch")
     plt.savefig(f"information_plane_{timestamp}.pdf", bbox_inches="tight")

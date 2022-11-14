@@ -20,8 +20,7 @@ class BaseModel(LightningModule):
     def __init__(self, config):
         super().__init__()
         self.config = config
-        self.layer_i_xt = []
-        self.layer_i_yt = []
+        self.layer_mi = []
         self.weight_stats = []
         self.grad_stats = []
 
@@ -72,18 +71,15 @@ class BaseModel(LightningModule):
             x_train_id = self.trainer.datamodule.x_train_id
             with torch.no_grad():
                 _, Ts = self(x_train.to(self.device))
-            layer_i_xt_at_epoch, layer_i_yt_at_epoch = {}, {}
-            layer_i_xt_at_epoch["epoch"] = self.current_epoch
-            layer_i_yt_at_epoch["epoch"] = self.current_epoch
-            for layer_idx, t in enumerate(Ts, 1):
+            layer_mi_at_epoch = {"epoch": self.current_epoch}
+            for idx, t in enumerate(Ts, 1):
                 t = t.cpu()
                 i_xt, i_yt = calculate_layer_mi(
                     t, self.config.num_bins, self.config.activation, x_train_id, y_train
                 )
-                layer_i_xt_at_epoch[f"l{layer_idx}_i_xt"] = i_xt
-                layer_i_yt_at_epoch[f"l{layer_idx}_i_yt"] = i_yt
-            self.layer_i_xt.append(layer_i_xt_at_epoch)
-            self.layer_i_yt.append(layer_i_yt_at_epoch)
+                layer_mi_at_epoch[f"l{idx}_i_xt"] = i_xt
+                layer_mi_at_epoch[f"l{idx}_i_yt"] = i_yt
+            self.layer_mi.append(layer_mi_at_epoch)
 
     def validation_step(self, batch, batch_idx):
         loss, acc = self.evaluate(batch, stage="val")
@@ -105,15 +101,12 @@ class BaseModel(LightningModule):
 
     def on_train_end(self):
         if self.config.log_mi:
-            # save mutual information to csv and plot
+            # Save mutual information to csv and plot
             current_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-            df_i_xt = pd.DataFrame(self.layer_i_xt)
-            df_i_yt = pd.DataFrame(self.layer_i_yt)
-            df_i_xt.to_csv(f"i_xt_{current_time}.csv", index=False)
-            df_i_yt.to_csv(f"i_yt_{current_time}.csv", index=False)
-            plot_mi(df_i_xt, df_i_yt, self.config.layer_shapes.count("x"), current_time)
-            wandb.log({"i_xt": wandb.Table(dataframe=df_i_xt)})
-            wandb.log({"i_yt": wandb.Table(dataframe=df_i_yt)})
+            df_mi = pd.DataFrame(self.layer_mi)
+            df_mi.to_csv(f"layer_mi_{current_time}.csv", index=False)
+            plot_mi(df_mi, self.config.layer_shapes.count("x"), current_time)
+            wandb.log({"layer_mi": wandb.Table(dataframe=df_mi)})
             wandb.log(
                 {
                     "information_plane": wandb.Image(
@@ -150,7 +143,7 @@ class FCN(BaseModel):
         self.fc = nn.Linear(layer_shapes[-2], layer_shapes[-1])
         nn.init.trunc_normal_(self.fc.weight, mean=0, std=sqrt(1 / layer_shapes[-1]))
         nn.init.zeros_(self.fc.bias)
-        # choose activation function
+        # Choose activation function
         if config.activation == "relu":
             self.activation = nn.ReLU()
         elif config.activation == "tanh":
