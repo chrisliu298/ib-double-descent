@@ -79,7 +79,7 @@ def main():
         offline=not cfg.wandb,
         project=cfg.project_id,
         entity="ib-double-descent",
-        cfg=cfg,
+        config=cfg,
     )
     trainer = Trainer(
         accelerator="gpu",
