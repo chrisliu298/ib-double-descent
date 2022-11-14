@@ -143,11 +143,11 @@ class FCN(BaseModel):
         nn.init.zeros_(self.fc.bias)
         # choose activation function
         if config.activation == "relu":
-            self.activation = torch.relu
+            self.activation = nn.ReLU()
         elif config.activation == "tanh":
-            self.activation = torch.tanh
+            self.activation = nn.Tanh()
         elif config.activation == "sigmoid":
-            self.activation = torch.sigmoid
+            self.activation = nn.Sigmoid()
 
     def forward(self, x):
         Ts = []  # intermediate outputs
