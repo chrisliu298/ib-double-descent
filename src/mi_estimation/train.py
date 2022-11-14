@@ -38,8 +38,8 @@ def parse_args():
     parser.add_argument("--verbose", type=int, default=0)
     parser.add_argument("--wandb", action="store_true")
     parser.add_argument("--log_mi", action="store_true")
-    parser.add_argument("--log_grad_norm", action="store_true")
-    parser.add_argument("--log_weight_norm", action="store_true")
+    parser.add_argument("--log_grad_stats", action="store_true")
+    parser.add_argument("--log_weight_stats", action="store_true")
     # convert to an easydict object
     config = EasyDict(vars(parser.parse_args()))
     return config

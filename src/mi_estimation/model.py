@@ -11,7 +11,7 @@ from pytorch_lightning import LightningModule
 from torchinfo import summary
 from torchmetrics.functional import accuracy
 
-from utils import calculate_layer_mi, grad_norm, log_now, plot_mi, weight_norm
+from utils import calculate_layer_mi, grad_stats, log_now, plot_mi, weight_stats
 
 
 class BaseModel(LightningModule):
@@ -20,6 +20,8 @@ class BaseModel(LightningModule):
         self.config = config
         self.layer_i_xt = []
         self.layer_i_yt = []
+        self.weight_stats = []
+        self.grad_stats = []
 
     def on_train_start(self):
         input_size = self.trainer.datamodule.x_train.shape[1]
@@ -47,17 +49,18 @@ class BaseModel(LightningModule):
         return {"loss": loss, "train_acc": acc}
 
     def on_after_backward(self):
-        if self.config.log_grad_norm:
-            self.log_dict(grad_norm(self), logger=True)
+        if self.config.log_grad_stats:
+            self.log_dict(grad_stats(self), logger=True)
 
     def training_epoch_end(self, outputs):
         loss = torch.stack([i["loss"] for i in outputs]).double().mean()
         acc = torch.stack([i["train_acc"] for i in outputs]).double().mean()
         self.log_dict({"avg_train_acc": acc, "avg_train_loss": loss}, logger=True)
+        # log weight stats
         if self.config.log_weight_norm:
-            self.log_dict(weight_norm(self), logger=True)
+            self.log_dict(weight_stats(self), logger=True)
+        # estimate mutual information
         if self.config.log_mi and log_now(self.current_epoch):
-            # estimate mutual information
             x_train = self.trainer.datamodule.x_train
             y_train = self.trainer.datamodule.y_train
             x_train_id = self.trainer.datamodule.x_train_id

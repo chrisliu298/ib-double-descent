@@ -59,42 +59,38 @@ def plot_mi(df_i_xt, df_i_yt, num_cols, timestamp):
 
 
 @torch.no_grad()
-def weight_norm(module):
-    """
-    Calculate the norm of the weights (per layer and total) for an nn module.
-    """
+def weight_stats(module):
+    means = {}
+    stds = {}
     norms = {}
     weights = []
-    # calculate per-layer weight norm
     for pn, p in module.named_parameters():
+        means[f"weight_mean_{pn}"] = p.data.mean()
+        stds[f"weight_std_{pn}"] = p.data.std()
         norms[f"weight_norm_{pn}"] = p.data.norm(p=2)
-        # here we directly compute the sum of the squares to avoid
-        # appending the entire weight vector to the list to save memory
-        weights.append(p.data.flatten().pow(2).sum())
-    # calculate total weight norm
-    # here we only need to sum the list of squared weights and take the sqrt
-    norms["weight_norm_all"] = torch.stack(weights).sum().sqrt()
-    return norms
+        weights.append(p.data.flatten())
+    means["weight_mean_all"] = torch.cat(weights).mean()
+    stds["weight_std_all"] = torch.cat(weights).std()
+    norms["weight_norm_all"] = torch.cat(weights).norm(p=2)
+    return {**means, **stds, **norms}
 
 
 @torch.no_grad()
-def grad_norm(module):
-    """
-    Calculate the norm of the gradients (per layer and total) for an nn module.
-    """
+def grad_stats(module):
+    means = {}
+    stds = {}
     norms = {}
     grads = []
-    # calculate per-layer gradient norm
     for pn, p in module.named_parameters():
-        if p.grad is not None:  # some parameters may not have gradients
+        if p.grad is not None:
+            means[f"grad_mean_{pn}"] = p.grad.data.mean()
+            stds[f"grad_std_{pn}"] = p.grad.data.std()
             norms[f"grad_norm_{pn}"] = p.grad.data.norm(p=2)
-            # here we directly compute the sum of the squares to avoid
-            # appending the entire weight vector to the list to save memory
-            grads.append(p.grad.data.flatten().pow(2).sum())
-    # calculate total gradient norm
-    # here we only need to sum the list of squared gradients and take the sqrt
-    norms["grad_norm_all"] = torch.stack(grads).sum().sqrt()
-    return norms
+            grads.append(p.grad.data.flatten())
+    means["grad_mean_all"] = torch.cat(grads).mean()
+    stds["grad_std_all"] = torch.cat(grads).std()
+    norms["grad_norm_all"] = torch.stack(grads).norm(p=2)
+    return {**means, **stds, **norms}
 
 
 def log_now(epoch):
