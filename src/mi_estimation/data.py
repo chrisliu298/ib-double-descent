@@ -99,7 +99,7 @@ class MNISTDataModule(BaseDataModule):
         )
         self.x_train, self.y_train = self.train_dataset.data, self.train_dataset.targets
         self.x_test, self.y_test = self.test_dataset.data, self.test_dataset.targets
-        self.x_train = standardize(self.x_train).view(-1, 784)
-        self.x_test = standardize(self.x_test).view(-1, 784)
+        self.x_train = standardize(self.x_train, 0.1307, 0.3081).view(-1, 784)
+        self.x_test = standardize(self.x_test, 0.1307, 0.3081).view(-1, 784)
         self.x_train_id = torch.arange(self.x_train.shape[0])
         self.x_test_id = torch.arange(self.x_test.shape[0])

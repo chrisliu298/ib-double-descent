@@ -152,6 +152,8 @@ class FCN(BaseModel):
             self.activation = nn.Sigmoid()
 
     def forward(self, x):
+        if x.dim() > 2:
+            x = x.view(x.size(0), -1)
         Ts = []  # intermediate outputs for all layers
         for layer in self._layers:
             x = self.activation(layer(x))
