@@ -8,6 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import wandb
+from matplotlib import colors
 from pytorch_lightning import LightningModule
 from torchinfo import summary
 from torchmetrics.functional import accuracy
@@ -117,7 +118,7 @@ class BaseModel(LightningModule):
                     s=50,
                     c=df_i_xt["epoch"],
                     cmap="viridis",
-                    # norm=colors.LogNorm(vmin=1, vmax=df_i_xt["epoch"].max()),
+                    norm=colors.LogNorm(vmin=1, vmax=df_i_xt["epoch"].max()),
                 )
             fig.colorbar(a, label="Epoch")
             fig.savefig(f"information_plane_{current_time}.pdf", bbox_inches="tight")
