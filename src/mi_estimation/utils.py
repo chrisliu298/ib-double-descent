@@ -61,7 +61,7 @@ def calculate_layer_mi(x_id, t, y, activation, num_bins=30):
 def plot_mi(df_i, num_cols, timestamp):
     """Plot the mutual information for each layer."""
     mpl.rcParams.update({"font.size": 20})
-    fig, axes = plt.subplots(1, 2, figsize=(16, 8))
+    fig, axes = plt.subplots(1, 2, figsize=(17, 8))
     axes[0].set_xlabel(r"$I(X; T)$")
     axes[0].set_ylabel(r"$I(T; Y)$")
     axes[0].set_title("Train")
@@ -76,23 +76,23 @@ def plot_mi(df_i, num_cols, timestamp):
         axes[0].scatter(
             df_i[f"l{i+1}_i_xt_tr"],
             df_i[f"l{i+1}_i_ty_tr"],
-            s=400,
+            s=500,
             c=df_i["epoch"],
             cmap="viridis",
             norm=mpl.colors.LogNorm(vmin=1, vmax=df_i["epoch"].max()),
         )
     for i in range(num_cols - 1):
-        axes[0].scatter(
+        m = axes[1].scatter(
             df_i[f"l{i+1}_i_xt_te"],
             df_i[f"l{i+1}_i_ty_te"],
-            s=400,
+            s=500,
             c=df_i["epoch"],
             cmap="viridis",
             norm=mpl.colors.LogNorm(vmin=1, vmax=df_i["epoch"].max()),
         )
     divider = make_axes_locatable(axes[1])
     cax = divider.append_axes("right", size="5%", pad=0.1)
-    fig.colorbar(label="Epochs", cax=cax)
+    fig.colorbar(m, label="Epochs", cax=cax)
     fig.tight_layout()
     fig.savefig(f"information_plane_{timestamp}.pdf", bbox_inches="tight")
     fig.savefig(f"information_plane_{timestamp}.png", bbox_inches="tight", dpi=600)
