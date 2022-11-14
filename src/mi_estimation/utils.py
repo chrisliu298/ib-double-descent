@@ -21,11 +21,14 @@ def calculate_layer_mi(layer_out, num_bins, activation, x_id, y):
     """Calculate the mutual information given the output of a single layer,
     the id's of x, and the labels y.
 
-    The function first calculates p(x), p(y), p(t). It also calculates p(x, t) and
-    p(y, t) by counting the number of times each combination of x, y, and t occurs.
-    This is done by the Counter() trick: the x_id/y concatenated with the corresponding
-    indices (of the bins) are used to tell if a particular combination of x, y or y, t
-    has occurred. This is adapted from https://github.com/stevenliuyi/information-bottleneck.
+    The function first calculates p(x), p(y), p(t). It then calculates p(x, t) and
+    p(y, t) by counting the number of times each combination of discretized (x, t)
+    or (y, t) occurs in the same bucket (i.e., bin). This is done by the Counter()
+    trick: the x_id/y concatenated with the corresponding indices (of the bins) are
+    used as a hashable key to tell if a particular combination of (x, y) or (y, t)
+    has occurred.
+
+    This is adapted from https://github.com/stevenliuyi/information-bottleneck.
     """
     num_samples = layer_out.shape[0]
     pdf_x, pdf_y, pdf_t, pdf_xt, pdf_yt = [Counter() for _ in range(5)]
@@ -44,7 +47,8 @@ def calculate_layer_mi(layer_out, num_bins, activation, x_id, y):
         pdf_xt[(x_id[i].item(),) + tuple(indices[i, :].tolist())] += 1 / num_samples
         pdf_yt[(y[i].item(),) + tuple(indices[i, :].tolist())] += 1 / num_samples
         pdf_t[tuple(indices[i, :].tolist())] += 1 / num_samples
-    # Calculate mutual information by I(X; T) = sum(p(x, y) * log(p(x, y) / (p(x) * p(y))))
+    # Calculate mutual information by
+    # I(X; T) = sum(p(x, y) * log(p(x, y) / (p(x) * p(y))))
     i_xt = sum(
         pdf_xt[i] * log2(pdf_xt[i] / (pdf_x[i[0]] * pdf_t[i[1:]])) for i in pdf_xt
     )
