@@ -57,7 +57,7 @@ class BaseModel(LightningModule):
         acc = torch.stack([i["train_acc"] for i in outputs]).double().mean()
         self.log_dict({"avg_train_acc": acc, "avg_train_loss": loss}, logger=True)
         # log weight stats
-        if self.config.log_weight_norm:
+        if self.config.log_weight_stats:
             self.log_dict(weight_stats(self), logger=True)
         # estimate mutual information
         if self.config.log_mi and log_now(self.current_epoch):
