@@ -12,16 +12,16 @@ from model import FCN
 
 
 def parse_args():
-    # parse command line arguments
+    # Parse command line arguments
     parser = argparse.ArgumentParser()
-    # dataset
+    # Dataset
     parser.add_argument("--dataset_path", type=str, required=True)
-    # model
+    # Model
     parser.add_argument("--layer_shapes", type=str, default="12x10x7x5x4x3x2")
     parser.add_argument(
         "--activation", type=str, default="tanh", choices=["relu", "tanh", "sigmoid"]
     )
-    # training
+    # Training
     parser.add_argument("--batch_size", type=int, default=256)
     parser.add_argument("--lr", type=float, default=1e-1)
     parser.add_argument("--max_epochs", type=int, default=10000)
@@ -30,9 +30,9 @@ def parse_args():
         "--optimizer", type=str, default="adam", choices=["adam", "sgd"]
     )
     parser.add_argument("--num_workers", default="full")
-    # mi estimation
+    # MI estimation
     parser.add_argument("--num_bins", type=int, default=30)
-    # experiment
+    # Experiment
     parser.add_argument("--project_id", type=str, default="dnn-mi")
     parser.add_argument("--seed", type=int)
     parser.add_argument("--verbose", type=int, default=0)
@@ -40,24 +40,24 @@ def parse_args():
     parser.add_argument("--log_mi", action="store_true")
     parser.add_argument("--log_grad_stats", action="store_true")
     parser.add_argument("--log_weight_stats", action="store_true")
-    # convert to an easydict object
+    # Convert to an easydict object
     config = EasyDict(vars(parser.parse_args()))
     return config
 
 
 def main():
     config = parse_args()
-    # set num workers
+    # Set num workers
     if config.num_workers == "full":
         config.num_workers = os.cpu_count()
-    # set seed
+    # Set seed
     if config.seed is not None:
         seed_everything(config.seed)
-    # initialize data module
+    # Initialize data module
     datamodule = SZTDataModule(config)
-    # initialize model
+    # Initialize model
     model = FCN(config)
-    # setup trainer
+    # Setup trainer
     callbacks = [
         LearningRateMonitor(logging_interval="step"),
         ModelCheckpoint(
@@ -83,7 +83,7 @@ def main():
         logger=logger,
         enable_progress_bar=config.verbose > 0,
     )
-    # train and test
+    # Train and test
     trainer.fit(model=model, datamodule=datamodule)
     trainer.test(model=model, datamodule=datamodule, verbose=config.verbose > 0)
     wandb.finish(quiet=True)

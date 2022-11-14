@@ -40,16 +40,24 @@ class BaseDataModule(LightningDataModule):
 
 
 class SZTDataModule(BaseDataModule):
+    """A toy binary classification dataset.
+
+    The dataset is from https://arxiv.org/abs/1703.00810 and is originally included in
+    https://github.com/ravidziv/IDNNs.
+    """
+
     def __init__(self, config):
         super().__init__(config)
         self.dataset_path = config.dataset_path
 
     def setup(self, stage=None):
         assert os.path.isfile(self.dataset_path), f"{self.dataset_path} does not exist."
+        # Read and split data
         data = sio.loadmat(self.dataset_path)
         x, y = data["F"], data["y"]
         x = torch.from_numpy(x).float()
         y = torch.from_numpy(y).squeeze().long()
+        # The x_id here is for computing the joint probability p(x, y)
         x_id = torch.arange(x.shape[0])
         (
             self.x_train,
@@ -59,5 +67,6 @@ class SZTDataModule(BaseDataModule):
             self.x_train_id,
             self.x_test_id,
         ) = list(train_test_split(x, y, x_id, total_size=x.shape[0], test_size=0.15))
+        # Create tensor datasets
         self.train_dataset = TensorDataset(self.x_train, self.y_train)
         self.test_dataset = TensorDataset(self.x_test, self.y_test)

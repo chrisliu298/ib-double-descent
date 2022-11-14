@@ -15,6 +15,8 @@ from utils import calculate_layer_mi, grad_stats, log_now, plot_mi, weight_stats
 
 
 class BaseModel(LightningModule):
+    """A lightning module that serves as a base class for all modules."""
+
     def __init__(self, config):
         super().__init__()
         self.config = config
@@ -24,6 +26,7 @@ class BaseModel(LightningModule):
         self.grad_stats = []
 
     def on_train_start(self):
+        """Log model summary and hyperparameters."""
         input_size = self.trainer.datamodule.x_train.shape[1]
         model_summary = summary(
             self, input_size=(1, input_size), verbose=self.config.verbose
@@ -37,6 +40,8 @@ class BaseModel(LightningModule):
         )
 
     def evaluate(self, batch, stage=None):
+        """Evaluate the model on a batch. This is used for training, validation
+        and testing."""
         x, y = batch
         output, _ = self(x)
         loss = F.cross_entropy(output, y)
@@ -49,6 +54,7 @@ class BaseModel(LightningModule):
         return {"loss": loss, "train_acc": acc}
 
     def on_after_backward(self):
+        """Log gradient stats."""
         if self.config.log_grad_stats:
             self.log_dict(grad_stats(self), logger=True)
 
@@ -56,10 +62,10 @@ class BaseModel(LightningModule):
         loss = torch.stack([i["loss"] for i in outputs]).double().mean()
         acc = torch.stack([i["train_acc"] for i in outputs]).double().mean()
         self.log_dict({"avg_train_acc": acc, "avg_train_loss": loss}, logger=True)
-        # log weight stats
+        # Log weight stats
         if self.config.log_weight_stats:
             self.log_dict(weight_stats(self), logger=True)
-        # estimate mutual information
+        # Estimate mutual information
         if self.config.log_mi and log_now(self.current_epoch):
             x_train = self.trainer.datamodule.x_train
             y_train = self.trainer.datamodule.y_train
@@ -102,8 +108,8 @@ class BaseModel(LightningModule):
             # save mutual information to csv and plot
             current_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
             df_i_xt = pd.DataFrame(self.layer_i_xt)
-            df_i_xt.to_csv(f"i_xt_{current_time}.csv", index=False)
             df_i_yt = pd.DataFrame(self.layer_i_yt)
+            df_i_xt.to_csv(f"i_xt_{current_time}.csv", index=False)
             df_i_yt.to_csv(f"i_yt_{current_time}.csv", index=False)
             plot_mi(df_i_xt, df_i_yt, self.config.layer_shapes.count("x"), current_time)
             wandb.log({"i_xt": wandb.Table(dataframe=df_i_xt)})
@@ -127,17 +133,20 @@ class BaseModel(LightningModule):
 
 
 class FCN(BaseModel):
+    """Fully connected neural network."""
+
     def __init__(self, config):
         super().__init__(config)
         layer_shapes = [int(x) for x in config.layer_shapes.split("x")]
         self._layers = []
+        # Input layer and hidden layers
         for i in range(1, len(layer_shapes) - 1):
             layer = nn.Linear(layer_shapes[i - 1], layer_shapes[i])
             nn.init.trunc_normal_(layer.weight, mean=0, std=sqrt(1 / layer_shapes[i]))
             nn.init.zeros_(layer.bias)
             self._layers.append(layer)
             self.add_module(f"layer{i}", layer)
-        # last layer
+        # Last layer
         self.fc = nn.Linear(layer_shapes[-2], layer_shapes[-1])
         nn.init.trunc_normal_(self.fc.weight, mean=0, std=sqrt(1 / layer_shapes[-1]))
         nn.init.zeros_(self.fc.bias)
@@ -150,7 +159,7 @@ class FCN(BaseModel):
             self.activation = nn.Sigmoid()
 
     def forward(self, x):
-        Ts = []  # intermediate outputs
+        Ts = []  # intermediate outputs for all layers
         for layer in self._layers:
             x = self.activation(layer(x))
             Ts.append(x.clone().detach())
