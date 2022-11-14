@@ -107,12 +107,12 @@ class BaseModel(LightningModule):
             wandb.log({"i_xt": wandb.Table(dataframe=df_i_xt)})
             wandb.log({"i_yt": wandb.Table(dataframe=df_i_yt)})
             # plot information plane
-            fig, ax = plt.subplots(figsize=(8, 6))
-            ax.set_xlabel(r"$I(X; T)$")
-            ax.set_ylabel(r"$I(Y; T)$")
+            plt.figure(figsize=(8, 6))
+            plt.xlabel(r"$I(X; T)$")
+            plt.ylabel(r"$I(Y; T)$")
             num_layers = self.config.layer_shapes.count("x")
             for i in range(num_layers):
-                a = ax.scatter(
+                plt.scatter(
                     df_i_xt[f"l{i+1}_i_xt"],
                     df_i_yt[f"l{i+1}_i_yt"],
                     s=50,
@@ -120,9 +120,9 @@ class BaseModel(LightningModule):
                     cmap="viridis",
                     norm=colors.LogNorm(vmin=1, vmax=df_i_xt["epoch"].max()),
                 )
-            fig.colorbar(a, label="Epoch")
-            fig.savefig(f"information_plane_{current_time}.pdf", bbox_inches="tight")
-            fig.savefig(
+            plt.colorbar(label="Epoch")
+            plt.savefig(f"information_plane_{current_time}.pdf", bbox_inches="tight")
+            plt.savefig(
                 f"information_plane_{current_time}.png", bbox_inches="tight", dpi=600
             )
             wandb.log(
