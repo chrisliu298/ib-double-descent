@@ -1,9 +1,9 @@
 from collections import Counter
 from math import log2
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import torch
-from matplotlib import colors
 
 
 def train_test_split(*tensors, total_size, test_size=0.2):
@@ -55,7 +55,7 @@ def calculate_layer_mi(layer_out, num_bins, activation, x_id, y):
 
 def plot_mi(df_i, num_cols, timestamp):
     """Plot the mutual information for each layer."""
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(8, 8))
     plt.xlabel(r"$I(X; T)$")
     plt.ylabel(r"$I(Y; T)$")
     plt.xlim(0, 12)
@@ -64,10 +64,10 @@ def plot_mi(df_i, num_cols, timestamp):
         plt.scatter(
             df_i[f"l{i+1}_i_xt"],
             df_i[f"l{i+1}_i_yt"],
-            s=50,
+            s=100,
             c=df_i["epoch"],
             cmap="viridis",
-            norm=colors.LogNorm(vmin=1, vmax=df_i["epoch"].max()),
+            norm=mpl.colors.LogNorm(vmin=1, vmax=df_i["epoch"].max()),
         )
     plt.colorbar(label="Epoch")
     plt.savefig(f"information_plane_{timestamp}.pdf", bbox_inches="tight")

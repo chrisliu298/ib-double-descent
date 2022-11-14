@@ -1,6 +1,7 @@
 import argparse
 import os
 
+import matplotlib as mpl
 import wandb
 from easydict import EasyDict
 from pytorch_lightning import Trainer, seed_everything
@@ -9,6 +10,8 @@ from pytorch_lightning.loggers import WandbLogger
 
 from data import SZTDataModule
 from model import FCN
+
+mpl.rcParams.update({"font.size": 16})
 
 
 def parse_args():
