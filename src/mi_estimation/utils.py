@@ -17,7 +17,7 @@ def train_test_split(*tensors, total_size, test_size=0.2):
         yield tensor[test_indices]
 
 
-def calculate_layer_mi(layer_out, num_bins, activation, x_id, y):
+def calculate_layer_mi(x_id, t, y, activation, num_bins=30):
     """Calculate the mutual information given the output of a single layer,
     the id's of x, and the labels y.
 
@@ -30,56 +30,72 @@ def calculate_layer_mi(layer_out, num_bins, activation, x_id, y):
 
     This is adapted from https://github.com/stevenliuyi/information-bottleneck.
     """
-    num_samples = layer_out.shape[0]
-    pdf_x, pdf_y, pdf_t, pdf_xt, pdf_yt = [Counter() for _ in range(5)]
+    num_samples = t.shape[0]
+    pdf_x, pdf_y, pdf_t, pdf_xt, pdf_ty = [Counter() for _ in range(5)]
     # Decide the bin ranges based on the activation function used
     if activation == "tanh":
-        bins = torch.linspace(-1, 1, num_bins + 1)
+        bins = torch.linspace(-1, 1, num_bins)
     elif activation == "sigmoid":
-        bins = torch.linspace(0, 1, num_bins + 1)
+        bins = torch.linspace(0, 1, num_bins)
     elif activation == "relu":
-        bins = torch.linspace(0, layer_out.max(), num_bins + 1)
-    indices = torch.bucketize(layer_out, bins)
+        bins = torch.linspace(0, t.max(), num_bins)
+    indices = torch.bucketize(t, bins)
     # Calculate probability distributions by counting
     for i in range(num_samples):
         pdf_x[x_id[i].item()] += 1 / num_samples
         pdf_y[y[i].item()] += 1 / num_samples
         pdf_xt[(x_id[i].item(),) + tuple(indices[i, :].tolist())] += 1 / num_samples
-        pdf_yt[(y[i].item(),) + tuple(indices[i, :].tolist())] += 1 / num_samples
+        pdf_ty[(y[i].item(),) + tuple(indices[i, :].tolist())] += 1 / num_samples
         pdf_t[tuple(indices[i, :].tolist())] += 1 / num_samples
     # Calculate mutual information by
     # I(X; T) = sum(p(x, y) * log(p(x, y) / (p(x) * p(y))))
     i_xt = sum(
         pdf_xt[i] * log2(pdf_xt[i] / (pdf_x[i[0]] * pdf_t[i[1:]])) for i in pdf_xt
     )
-    i_yt = sum(
-        pdf_yt[i] * log2(pdf_yt[i] / (pdf_y[i[0]] * pdf_t[i[1:]])) for i in pdf_yt
+    i_ty = sum(
+        pdf_ty[i] * log2(pdf_ty[i] / (pdf_y[i[0]] * pdf_t[i[1:]])) for i in pdf_ty
     )
-    return i_xt, i_yt
+    return i_xt, i_ty
 
 
 def plot_mi(df_i, num_cols, timestamp):
     """Plot the mutual information for each layer."""
     mpl.rcParams.update({"font.size": 20})
-    plt.figure(figsize=(8, 8))
-    plt.xlabel(r"$I(X; T)$")
-    plt.ylabel(r"$I(T; Y)$")
-    plt.xlim(0, 12.5)
-    plt.ylim(0, 1.05)
+    fig, axes = plt.subplots(1, 2, figsize=(16, 8))
+    axes[0].set_xlabel(r"$I(X; T)$")
+    axes[0].set_ylabel(r"$I(T; Y)$")
+    axes[0].set_title("Train")
+    axes[0].set_xlim(0, 12.5)
+    axes[0].set_ylim(0, 1.05)
+    axes[1].set_xlabel(r"$I(X; T)$")
+    axes[1].set_ylabel(r"$I(T; Y)$")
+    axes[1].set_title("Test")
+    axes[1].set_xlim(0, 12.5)
+    axes[1].set_ylim(0, 1.05)
     for i in range(num_cols - 1):
-        plt.scatter(
-            df_i[f"l{i+1}_i_xt"],
-            df_i[f"l{i+1}_i_yt"],
+        axes[0].scatter(
+            df_i[f"l{i+1}_i_xt_tr"],
+            df_i[f"l{i+1}_i_ty_tr"],
             s=400,
             c=df_i["epoch"],
             cmap="viridis",
             norm=mpl.colors.LogNorm(vmin=1, vmax=df_i["epoch"].max()),
         )
-    divider = make_axes_locatable(plt.gca())
+    for i in range(num_cols - 1):
+        axes[0].scatter(
+            df_i[f"l{i+1}_i_xt_te"],
+            df_i[f"l{i+1}_i_ty_te"],
+            s=400,
+            c=df_i["epoch"],
+            cmap="viridis",
+            norm=mpl.colors.LogNorm(vmin=1, vmax=df_i["epoch"].max()),
+        )
+    divider = make_axes_locatable(axes[1])
     cax = divider.append_axes("right", size="5%", pad=0.1)
-    plt.colorbar(label="Epochs", cax=cax)
-    plt.savefig(f"information_plane_{timestamp}.pdf", bbox_inches="tight")
-    plt.savefig(f"information_plane_{timestamp}.png", bbox_inches="tight", dpi=600)
+    fig.colorbar(label="Epochs", cax=cax)
+    fig.tight_layout()
+    fig.savefig(f"information_plane_{timestamp}.pdf", bbox_inches="tight")
+    fig.savefig(f"information_plane_{timestamp}.png", bbox_inches="tight", dpi=600)
 
 
 @torch.no_grad()

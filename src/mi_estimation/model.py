@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import wandb
-from pytorch_lightning import LightningModule
+from ptyorch_lightning import LightningModule
 from torchinfo import summary
 from torchmetrics.functional import accuracy
 
@@ -66,20 +66,7 @@ class BaseModel(LightningModule):
             self.log_dict(weight_stats(self), logger=True)
         # Estimate mutual information
         if self.cfg.log_mi and log_now(self.current_epoch):
-            x_train = self.trainer.datamodule.x_train
-            y_train = self.trainer.datamodule.y_train
-            x_train_id = self.trainer.datamodule.x_train_id
-            with torch.no_grad():
-                _, Ts = self(x_train.to(self.device))
-            layer_mi_at_epoch = {"epoch": self.current_epoch}
-            for idx, t in enumerate(Ts, 1):
-                t = t.cpu()
-                i_xt, i_yt = calculate_layer_mi(
-                    t, self.cfg.num_bins, self.cfg.activation, x_train_id, y_train
-                )
-                layer_mi_at_epoch[f"l{idx}_i_xt"] = i_xt
-                layer_mi_at_epoch[f"l{idx}_i_yt"] = i_yt
-            self.layer_mi.append(layer_mi_at_epoch)
+            self.estimate_mi()
 
     def validation_step(self, batch, batch_idx):
         loss, acc = self.evaluate(batch, stage="val")
@@ -123,6 +110,34 @@ class BaseModel(LightningModule):
                 self.parameters(), lr=self.cfg.lr, momentum=self.cfg.momentum
             )
         return optimizer
+
+    def estimate_mi(self):
+        """Estimate mutual information."""
+        x_train = self.trainer.datamodule.x_train
+        y_train = self.trainer.datamodule.y_train
+        x_train_id = self.trainer.datamodule.x_train_id
+        x_test = self.trainer.datamodule.x_test
+        y_test = self.trainer.datamodule.y_test
+        x_test_id = self.trainer.datamodule.x_test_id
+        with torch.no_grad():
+            _, Ts_train = self(x_train.to(self.device))
+            _, Ts_test = self(x_test.to(self.device))
+        layer_mi_at_epoch = {"epoch": self.current_epoch}
+        for idx, t in enumerate(Ts_train, 1):
+            t = t.cpu()
+            i_xt, i_ty = calculate_layer_mi(
+                x_train_id, t, y_train, self.cfg.activation, self.cfg.num_bins
+            )
+            layer_mi_at_epoch[f"l{idx}_i_xt_tr"] = i_xt
+            layer_mi_at_epoch[f"l{idx}_i_ty_tr"] = i_ty
+        for idx, t in enumerate(Ts_test, 1):
+            t = t.cpu()
+            i_xt, i_ty = calculate_layer_mi(
+                x_test_id, t, y_test, self.cfg.activation, self.cfg.num_bins
+            )
+            layer_mi_at_epoch[f"l{idx}_i_xt_te"] = i_xt
+            layer_mi_at_epoch[f"l{idx}_i_ty_te"] = i_ty
+        self.layer_mi.append(layer_mi_at_epoch)
 
 
 class FCN(BaseModel):
