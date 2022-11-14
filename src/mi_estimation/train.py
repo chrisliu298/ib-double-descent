@@ -7,7 +7,7 @@ from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 
-from data import SZTDataModule
+from data import MNISTDataModule, SZTDataModule
 from model import FCN
 
 
@@ -15,7 +15,12 @@ def parse_args():
     # Parse command line arguments
     parser = argparse.ArgumentParser()
     # Dataset
-    parser.add_argument("--dataset_path", type=str, required=True)
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        required=True,
+        choices=["szt_g1", "szt_g2", "szt_var_u", "mnist"],
+    )
     # Model
     parser.add_argument("--layer_shapes", type=str, default="12x10x7x5x4x3x2")
     parser.add_argument(
@@ -54,7 +59,10 @@ def main():
     if config.seed is not None:
         seed_everything(config.seed)
     # Initialize data module
-    datamodule = SZTDataModule(config)
+    if "szt_" in config.dataset:
+        datamodule = SZTDataModule(config)
+    elif config.dataset == "mnist":
+        datamodule = MNISTDataModule(config)
     # Initialize model
     model = FCN(config)
     # Setup trainer

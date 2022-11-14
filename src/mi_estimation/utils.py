@@ -127,3 +127,8 @@ def log_now(epoch):
         return epoch % 20 == 0
     else:  # Then every 100th
         return epoch % 100 == 0
+
+
+def standardize(x, mean, std):
+    """Standardize a tensor to 0 mean and unit variance."""
+    return (x - mean) / std
