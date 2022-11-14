@@ -106,14 +106,14 @@ class BaseModel(LightningModule):
             df_mi = pd.DataFrame(self.layer_mi)
             df_mi.to_csv(f"layer_mi_{current_time}.csv", index=False)
             plot_mi(df_mi, self.config.layer_shapes.count("x"), current_time)
-            wandb.log({"layer_mi": wandb.Table(dataframe=df_mi)})
+            wandb.save(f"layer_mi_{current_time}.csv")  # save csv file
             wandb.log(
                 {
                     "information_plane": wandb.Image(
                         f"information_plane_{current_time}.png"
                     )
                 }
-            )
+            )  # save information plane plot
 
     def configure_optimizers(self):
         if self.config.optimizer == "adam":
