@@ -1,7 +1,9 @@
 from collections import Counter
 from math import log2
 
+import matplotlib.pyplot as plt
 import torch
+from matplotlib import colors
 
 
 def train_test_split(*tensors, total_size, test_size=0.2):
@@ -36,6 +38,24 @@ def calculate_layer_mi(layer_out, num_bins, activation, x_id, y):
         pdf_yt[i] * log2(pdf_yt[i] / (pdf_y[i[0]] * pdf_t[i[1:]])) for i in pdf_yt
     )
     return i_xt, i_yt
+
+
+def plot_mi(df_i_xt, df_i_yt, num_cols, timestamp):
+    plt.figure(figsize=(8, 6))
+    plt.xlabel(r"$I(X; T)$")
+    plt.ylabel(r"$I(Y; T)$")
+    for i in range(num_cols):
+        plt.scatter(
+            df_i_xt[f"l{i+1}_i_xt"],
+            df_i_yt[f"l{i+1}_i_yt"],
+            s=50,
+            c=df_i_xt["epoch"],
+            cmap="viridis",
+            norm=colors.LogNorm(vmin=1, vmax=df_i_xt["epoch"].max()),
+        )
+    plt.colorbar(label="Epoch")
+    plt.savefig(f"information_plane_{timestamp}.pdf", bbox_inches="tight")
+    plt.savefig(f"information_plane_{timestamp}.png", bbox_inches="tight", dpi=600)
 
 
 @torch.no_grad()

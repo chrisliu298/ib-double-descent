@@ -1,19 +1,17 @@
 import datetime
 from math import sqrt
 
-import matplotlib.pyplot as plt
 import pandas as pd
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import wandb
-from matplotlib import colors
 from pytorch_lightning import LightningModule
 from torchinfo import summary
 from torchmetrics.functional import accuracy
 
-from utils import calculate_layer_mi, grad_norm, log_now, weight_norm
+from utils import calculate_layer_mi, grad_norm, log_now, plot_mi, weight_norm
 
 
 class BaseModel(LightningModule):
@@ -104,27 +102,9 @@ class BaseModel(LightningModule):
             df_i_xt.to_csv(f"i_xt_{current_time}.csv", index=False)
             df_i_yt = pd.DataFrame(self.layer_i_yt)
             df_i_yt.to_csv(f"i_yt_{current_time}.csv", index=False)
+            plot_mi(df_i_xt, df_i_yt, self.config.layer_shapes.count("x"), current_time)
             wandb.log({"i_xt": wandb.Table(dataframe=df_i_xt)})
             wandb.log({"i_yt": wandb.Table(dataframe=df_i_yt)})
-            # plot information plane
-            plt.figure(figsize=(8, 6))
-            plt.xlabel(r"$I(X; T)$")
-            plt.ylabel(r"$I(Y; T)$")
-            num_layers = self.config.layer_shapes.count("x")
-            for i in range(num_layers):
-                plt.scatter(
-                    df_i_xt[f"l{i+1}_i_xt"],
-                    df_i_yt[f"l{i+1}_i_yt"],
-                    s=50,
-                    c=df_i_xt["epoch"],
-                    cmap="viridis",
-                    norm=colors.LogNorm(vmin=1, vmax=df_i_xt["epoch"].max()),
-                )
-            plt.colorbar(label="Epoch")
-            plt.savefig(f"information_plane_{current_time}.pdf", bbox_inches="tight")
-            plt.savefig(
-                f"information_plane_{current_time}.png", bbox_inches="tight", dpi=600
-            )
             wandb.log(
                 {
                     "information_plane": wandb.Image(
