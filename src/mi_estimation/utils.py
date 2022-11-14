@@ -4,6 +4,7 @@ from math import log2
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import torch
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
 def train_test_split(*tensors, total_size, test_size=0.2):
@@ -55,21 +56,24 @@ def calculate_layer_mi(layer_out, num_bins, activation, x_id, y):
 
 def plot_mi(df_i, num_cols, timestamp):
     """Plot the mutual information for each layer."""
+    mpl.rcParams.update({"font.size": 20})
     plt.figure(figsize=(8, 8))
     plt.xlabel(r"$I(X; T)$")
     plt.ylabel(r"$I(Y; T)$")
-    plt.xlim(0, 12)
-    plt.ylim(0, 1)
+    plt.xlim(0, 12.5)
+    plt.ylim(0, 1.05)
     for i in range(num_cols):
         plt.scatter(
             df_i[f"l{i+1}_i_xt"],
             df_i[f"l{i+1}_i_yt"],
-            s=100,
+            s=200,
             c=df_i["epoch"],
             cmap="viridis",
             norm=mpl.colors.LogNorm(vmin=1, vmax=df_i["epoch"].max()),
         )
-    plt.colorbar(label="Epoch")
+    divider = make_axes_locatable(plt.gca())
+    cax = divider.append_axes("right", size="5%", pad=0.1)
+    plt.colorbar(label="Epoch", cax=cax)
     plt.savefig(f"information_plane_{timestamp}.pdf", bbox_inches="tight")
     plt.savefig(f"information_plane_{timestamp}.png", bbox_inches="tight", dpi=600)
 
@@ -112,8 +116,9 @@ def grad_stats(module):
 
 
 def log_now(epoch):
-    """Decide the if the current epoch should be logged."""
-    # Taken from https://github.com/artemyk/ibsgd/tree/iclr2018
+    """Decide the if the current epoch should be logged.
+    Taken from https://github.com/artemyk/ibsgd/tree/iclr2018
+    """
     if epoch < 20:  # Log for all first 20 epochs
         return True
     elif epoch < 100:  # Then for every 5th epoch
