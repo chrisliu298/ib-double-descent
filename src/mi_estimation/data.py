@@ -49,6 +49,7 @@ class SZTDataModule(BaseDataModule):
 
     def __init__(self, config):
         super().__init__(config)
+        self.config = config
 
     def setup(self, stage=None):
         assert os.path.isfile(
