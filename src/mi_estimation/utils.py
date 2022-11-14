@@ -77,7 +77,7 @@ def plot_mi(df_i, num_cols, timestamp):
         )
     divider = make_axes_locatable(plt.gca())
     cax = divider.append_axes("right", size="5%", pad=0.1)
-    plt.colorbar(label="Epoch", cax=cax)
+    plt.colorbar(label="Epochs", cax=cax)
     plt.savefig(f"information_plane_{timestamp}.pdf", bbox_inches="tight")
     plt.savefig(f"information_plane_{timestamp}.png", bbox_inches="tight", dpi=600)
 
