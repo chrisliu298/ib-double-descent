@@ -66,7 +66,7 @@ def plot_mi(df_i, num_cols, timestamp):
     plt.ylabel(r"$I(T; Y)$")
     plt.xlim(0, 12.5)
     plt.ylim(0, 1.05)
-    for i in range(num_cols):
+    for i in range(num_cols - 1):
         plt.scatter(
             df_i[f"l{i+1}_i_xt"],
             df_i[f"l{i+1}_i_yt"],
