@@ -7,7 +7,7 @@ from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader, TensorDataset
 from torchvision import datasets, transforms
 
-from utils import standardize, train_test_split
+from utils import add_label_noise, make_binary, standardize, train_test_split
 
 
 class BaseDataModule(LightningDataModule):
@@ -39,17 +39,6 @@ class BaseDataModule(LightningDataModule):
             shuffle=False,
             num_workers=self.num_workers,
         )
-
-    def add_label_noise(self, labels, label_noise, num_classes):
-        labels = np.array(labels)
-        # indices for noisy labels
-        mask = np.random.rand(len(labels)) < label_noise
-        # generate random labels
-        random_labels = np.random.choice(num_classes, mask.sum())
-        labels[mask] = random_labels
-        # convert back to original labels format
-        labels = torch.tensor([int(x) for x in labels]).long()
-        return labels
 
 
 class SZTDataModule(BaseDataModule):
@@ -83,7 +72,7 @@ class SZTDataModule(BaseDataModule):
             self.x_test_id,
         ) = list(train_test_split(x, y, x_id, total_size=x.shape[0], test_size=0.15))
         if self.cfg.label_noise > 0:
-            self.y_train = self.add_label_noise(self.y_train, self.cfg.label_noise, 2)
+            self.y_train = add_label_noise(self.y_train, self.cfg.label_noise, 2)
         # Create tensor datasets
         self.train_dataset = TensorDataset(self.x_train, self.y_train)
         self.test_dataset = TensorDataset(self.x_test, self.y_test)
@@ -114,7 +103,7 @@ class MNISTDataModule(BaseDataModule):
             "/tmp/data", train=False, transform=self.transform
         )
         if self.cfg.label_noise > 0:
-            self.train_dataset.targets = self.add_label_noise(
+            self.train_dataset.targets = add_label_noise(
                 self.train_dataset.targets, self.cfg.label_noise, 10
             )
         self.x_train, self.y_train = self.train_dataset.data, self.train_dataset.targets
@@ -150,8 +139,92 @@ class FashionMNISTDataModule(BaseDataModule):
             "/tmp/data", train=False, transform=self.transform
         )
         if self.cfg.label_noise > 0:
-            self.train_dataset.targets = self.add_label_noise(
+            self.train_dataset.targets = add_label_noise(
                 self.train_dataset.targets, self.cfg.label_noise, 10
+            )
+        self.x_train, self.y_train = self.train_dataset.data, self.train_dataset.targets
+        self.x_test, self.y_test = self.test_dataset.data, self.test_dataset.targets
+        self.x_train = standardize(self.x_train, 0.2860, 0.3530).view(-1, 784)
+        self.x_test = standardize(self.x_test, 0.2860, 0.3530).view(-1, 784)
+        self.x_train_id = torch.arange(self.x_train.shape[0])
+        self.x_test_id = torch.arange(self.x_test.shape[0])
+
+
+class BinaryMNISTDataModule(BaseDataModule):
+    """A binary version of MNIST dataset that only contains 0 and 6."""
+
+    def __init__(self, cfg):
+        super().__init__(cfg)
+        self.cfg = cfg
+        self.labels = torch.tensor([0, 6])
+        self.transform = transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize((0.1307,), (0.3081,)),
+            ]
+        )
+
+    def prepare_data(self):
+        # download data
+        datasets.MNIST("/tmp/data", train=True, download=True)
+        datasets.MNIST("/tmp/data", train=False, download=True)
+
+    def setup(self, stage=None):
+        # load data
+        self.train_dataset = datasets.MNIST(
+            "/tmp/data", train=True, transform=self.transform
+        )
+        self.test_dataset = datasets.MNIST(
+            "/tmp/data", train=False, transform=self.transform
+        )
+        self.train_dataset.data, self.train_dataset.targets = make_binary(
+            self.train_dataset.data, self.train_dataset.targets, self.labels
+        )
+        if self.cfg.label_noise > 0:
+            self.train_dataset.targets = add_label_noise(
+                self.train_dataset.targets, self.cfg.label_noise, 2
+            )
+        self.x_train, self.y_train = self.train_dataset.data, self.train_dataset.targets
+        self.x_test, self.y_test = self.test_dataset.data, self.test_dataset.targets
+        self.x_train = standardize(self.x_train, 0.1307, 0.3081).view(-1, 784)
+        self.x_test = standardize(self.x_test, 0.1307, 0.3081).view(-1, 784)
+        self.x_train_id = torch.arange(self.x_train.shape[0])
+        self.x_test_id = torch.arange(self.x_test.shape[0])
+
+
+class BinaryFashionMNISTDataModule(BaseDataModule):
+    """A binary version of Fashion-MNIST dataset that only contains 0 and 6."""
+
+    def __init__(self, cfg):
+        super().__init__(cfg)
+        self.cfg = cfg
+        self.labels = torch.tensor([0, 6])
+        self.transform = transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize((0.2860,), (0.3530,)),
+            ]
+        )
+
+    def prepare_data(self):
+        # download data
+        datasets.FashionMNIST("/tmp/data", train=True, download=True)
+        datasets.FashionMNIST("/tmp/data", train=False, download=True)
+
+    def setup(self, stage=None):
+        # load data
+        self.train_dataset = datasets.FashionMNIST(
+            "/tmp/data", train=True, transform=self.transform
+        )
+        self.test_dataset = datasets.FashionMNIST(
+            "/tmp/data", train=False, transform=self.transform
+        )
+        self.train_dataset.data, self.train_dataset.targets = make_binary(
+            self.train_dataset.data, self.train_dataset.targets, self.labels
+        )
+        if self.cfg.label_noise > 0:
+            self.train_dataset.targets = add_label_noise(
+                self.train_dataset.targets, self.cfg.label_noise, 2
             )
         self.x_train, self.y_train = self.train_dataset.data, self.train_dataset.targets
         self.x_test, self.y_test = self.test_dataset.data, self.test_dataset.targets

@@ -3,6 +3,7 @@ from math import log2
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import numby as np
 import torch
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
@@ -154,3 +155,22 @@ def log_now(epoch):
 def standardize(x, mean, std):
     """Standardize a tensor to 0 mean and unit variance."""
     return (x - mean) / std
+
+
+def add_label_noise(labels, label_noise, num_classes):
+    labels = np.array(labels)
+    # indices for noisy labels
+    mask = np.random.rand(len(labels)) < label_noise
+    # generate random labels
+    random_labels = np.random.choice(num_classes, mask.sum())
+    labels[mask] = random_labels
+    # convert back to original labels format
+    labels = torch.tensor([int(x) for x in labels]).long()
+    return labels
+
+
+def make_binary(x, y, labels):
+    binary_label_indices = torch.isin(y, labels)
+    x, y = x[binary_label_indices], y[binary_label_indices]
+    y = torch.where(y == labels[0], torch.tensor(0), torch.tensor(1))
+    return x, y
