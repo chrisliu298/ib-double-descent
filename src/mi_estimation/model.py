@@ -163,8 +163,6 @@ class FCN(BaseModel):
             self.activation = nn.ReLU()
         elif cfg.activation == "tanh":
             self.activation = nn.Tanh()
-        elif cfg.activation == "sigmoid":
-            self.activation = nn.Sigmoid()
 
     def forward(self, x):
         if x.dim() > 2:

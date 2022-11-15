@@ -35,8 +35,6 @@ def calculate_layer_mi(x_id, t, y, activation, num_bins=30):
     # Decide the bin ranges based on the activation function used
     if activation == "tanh":
         bins = torch.linspace(-1, 1, num_bins)
-    elif activation == "sigmoid":
-        bins = torch.linspace(0, 1, num_bins)
     elif activation == "relu":
         bins = torch.linspace(0, t.max(), num_bins)
     indices = torch.bucketize(t, bins)

@@ -25,7 +25,7 @@ def parse_args():
     # Model
     parser.add_argument("--layer_shapes", type=str, default="12x10x7x5x4x3x2")
     parser.add_argument(
-        "--activation", type=str, default="tanh", choices=["relu", "tanh", "sigmoid"]
+        "--activation", type=str, default="tanh", choices=["relu", "tanh"]
     )
     # Training
     parser.add_argument("--batch_size", type=int, default=256)
