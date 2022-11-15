@@ -180,6 +180,9 @@ class BinaryMNISTDataModule(BaseDataModule):
         self.train_dataset.data, self.train_dataset.targets = make_binary(
             self.train_dataset.data, self.train_dataset.targets, self.labels
         )
+        self.test_dataset.data, self.test_dataset.targets = make_binary(
+            self.test_dataset.data, self.test_dataset.targets, self.labels
+        )
         if self.cfg.label_noise > 0:
             self.train_dataset.targets = add_label_noise(
                 self.train_dataset.targets, self.cfg.label_noise, 2
@@ -221,6 +224,9 @@ class BinaryFashionMNISTDataModule(BaseDataModule):
         )
         self.train_dataset.data, self.train_dataset.targets = make_binary(
             self.train_dataset.data, self.train_dataset.targets, self.labels
+        )
+        self.test_dataset.data, self.test_dataset.targets = make_binary(
+            self.test_dataset.data, self.test_dataset.targets, self.labels
         )
         if self.cfg.label_noise > 0:
             self.train_dataset.targets = add_label_noise(
