@@ -72,7 +72,7 @@ def plot_mi(df_i, num_cols, timestamp):
     ax2.set_title("Test")
     ax2.set_xlim(0, 12.5)
     ax2.set_ylim(0, 1.05)
-    for i in range(num_cols - 1):
+    for i in range(num_cols):
         mappable1 = ax1.scatter(
             df_i[f"l{i+1}_i_xt_tr"],
             df_i[f"l{i+1}_i_ty_tr"],
@@ -81,7 +81,7 @@ def plot_mi(df_i, num_cols, timestamp):
             cmap="viridis",
             norm=mpl.colors.LogNorm(vmin=1, vmax=df_i["epoch"].max()),
         )
-    for i in range(num_cols - 1):
+    for i in range(num_cols):
         mappable2 = ax2.scatter(
             df_i[f"l{i+1}_i_xt_te"],
             df_i[f"l{i+1}_i_ty_te"],

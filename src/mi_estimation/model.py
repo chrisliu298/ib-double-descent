@@ -175,4 +175,5 @@ class FCN(BaseModel):
             x = self.activation(layer(x))
             Ts.append(x.clone().detach())
         x = self.fc(x)
+        Ts.append(self.activation(x).clone().detach())
         return x, Ts
