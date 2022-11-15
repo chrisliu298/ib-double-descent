@@ -123,3 +123,39 @@ class MNISTDataModule(BaseDataModule):
         self.x_test = standardize(self.x_test, 0.1307, 0.3081).view(-1, 784)
         self.x_train_id = torch.arange(self.x_train.shape[0])
         self.x_test_id = torch.arange(self.x_test.shape[0])
+
+
+class FashionMNISTDataModule(BaseDataModule):
+    def __init__(self, cfg):
+        super().__init__(cfg)
+        self.cfg = cfg
+        self.transform = transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize((0.2860,), (0.3530,)),
+            ]
+        )
+
+    def prepare_data(self):
+        # download data
+        datasets.FashionMNIST("/tmp/data", train=True, download=True)
+        datasets.FashionMNIST("/tmp/data", train=False, download=True)
+
+    def setup(self, stage=None):
+        # load data
+        self.train_dataset = datasets.FashionMNIST(
+            "/tmp/data", train=True, transform=self.transform
+        )
+        self.test_dataset = datasets.FashionMNIST(
+            "/tmp/data", train=False, transform=self.transform
+        )
+        if self.cfg.label_noise > 0:
+            self.train_dataset.targets = self.add_label_noise(
+                self.train_dataset.targets, self.cfg.label_noise, 10
+            )
+        self.x_train, self.y_train = self.train_dataset.data, self.train_dataset.targets
+        self.x_test, self.y_test = self.test_dataset.data, self.test_dataset.targets
+        self.x_train = standardize(self.x_train, 0.2860, 0.3530).view(-1, 784)
+        self.x_test = standardize(self.x_test, 0.2860, 0.3530).view(-1, 784)
+        self.x_train_id = torch.arange(self.x_train.shape[0])
+        self.x_test_id = torch.arange(self.x_test.shape[0])
