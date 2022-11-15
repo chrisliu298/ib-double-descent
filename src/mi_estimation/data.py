@@ -92,6 +92,7 @@ class SZTDataModule(BaseDataModule):
 class MNISTDataModule(BaseDataModule):
     def __init__(self, cfg):
         super().__init__(cfg)
+        self.cfg = cfg
         self.transform = transforms.Compose(
             [
                 transforms.ToTensor(),
