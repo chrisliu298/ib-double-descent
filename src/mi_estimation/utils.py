@@ -3,7 +3,7 @@ from math import log2
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import numby as np
+import numpy as np
 import torch
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
