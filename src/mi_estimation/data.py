@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 import scipy.io as sio
 import torch
 from pytorch_lightning import LightningDataModule
@@ -39,6 +40,17 @@ class BaseDataModule(LightningDataModule):
             num_workers=self.num_workers,
         )
 
+    def add_label_noise(self, labels, label_noise, num_classes):
+        labels = np.array(labels)
+        # indices for noisy labels
+        mask = np.random.rand(len(labels)) < label_noise
+        # generate random labels
+        random_labels = np.random.choice(num_classes, mask.sum())
+        labels[mask] = random_labels
+        # convert back to original labels format
+        labels = torch.tensor([int(x) for x in labels]).long()
+        return labels
+
 
 class SZTDataModule(BaseDataModule):
     """A toy binary classification dataset.
@@ -70,6 +82,8 @@ class SZTDataModule(BaseDataModule):
             self.x_train_id,
             self.x_test_id,
         ) = list(train_test_split(x, y, x_id, total_size=x.shape[0], test_size=0.15))
+        if self.cfg.label_noise > 0:
+            self.y_train = self.add_label_noise(self.y_train, self.cfg.label_noise, 2)
         # Create tensor datasets
         self.train_dataset = TensorDataset(self.x_train, self.y_train)
         self.test_dataset = TensorDataset(self.x_test, self.y_test)
@@ -98,6 +112,10 @@ class MNISTDataModule(BaseDataModule):
         self.test_dataset = datasets.MNIST(
             "/tmp/data", train=False, transform=self.transform
         )
+        if self.cfg.label_noise > 0:
+            self.train_dataset.targets = self.add_label_noise(
+                self.train_dataset.targets, self.cfg.label_noise, 10
+            )
         self.x_train, self.y_train = self.train_dataset.data, self.train_dataset.targets
         self.x_test, self.y_test = self.test_dataset.data, self.test_dataset.targets
         self.x_train = standardize(self.x_train, 0.1307, 0.3081).view(-1, 784)

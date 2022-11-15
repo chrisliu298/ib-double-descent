@@ -21,6 +21,7 @@ def parse_args():
         required=True,
         choices=["szt_g1", "szt_g2", "szt_var_u", "mnist"],
     )
+    parser.add_argument("--label_noise", type=float, default=0.0)
     # Model
     parser.add_argument("--layer_shapes", type=str, default="12x10x7x5x4x3x2")
     parser.add_argument(
