@@ -1,0 +1,4 @@
+pytorch-lightning
+torchinfo
+wandb
+easydict

@@ -7,3 +7,6 @@ running on a cluster (e.g. Nautilus).
 
 The `pvc.yml` defines a persistent volume claim for storing data related to this work, useful as a working directory
 for any experiments.
+
+This volume has been added to the `jlab-nlp` Namespace, but could be added to others as needed.
+
