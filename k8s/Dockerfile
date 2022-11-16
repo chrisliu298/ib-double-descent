@@ -33,7 +33,7 @@ RUN --mount=type=cache,target=/opt/conda/pkgs conda init zsh && conda create pyt
 # one installed in the conda environment itself. Make RUN commands use the new environment:
 SHELL ["conda", "run", "-p", "./venv", "/bin/bash", "-c"]
 
-RUN --mount=type=cache,target=/opt/conda/pkgs conda install --yes --freeze-installed pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch
+RUN --mount=type=cache,target=/opt/conda/pkgs conda install --yes pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia
 RUN --mount=type=cache,target=/opt/conda/pkgs conda install -c anaconda gxx_linux-64
 
 RUN --mount=type=cache,target=.cache/buildkit/pip pip install pyzmq
