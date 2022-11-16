@@ -96,7 +96,7 @@ def plot_mi(df_i, title, num_cols):
     fig.colorbar(mappable1, label="Epochs", cax=cax)
     fig.delaxes(fig.axes[2])
     fig.colorbar(mappable2, label="Epochs", cax=cax)
-    fig.suptitle(title, fontsize="x-large")
+    fig.suptitle("_".join(title.split("_")[1:]), fontsize="x-large", y=1.05)
     fig.tight_layout()
     fig.savefig(title + ".pdf", bbox_inches="tight")
     fig.savefig(title + ".png", bbox_inches="tight", dpi=300)
