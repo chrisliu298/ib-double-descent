@@ -92,7 +92,10 @@ class BaseModel(LightningModule):
             current_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
             df_mi = pd.DataFrame(self.layer_mi)
             df_mi.to_csv(f"layer_mi_{current_time}.csv", index=False)
-            plot_mi(df_mi, self.cfg.layer_shapes.count("x"), current_time)
+            title = (
+                self.cfg.dataset + "-" + self.cfg.model + "-" + self.cfg.layer_shapes
+            )
+            plot_mi(df_mi, title, self.cfg.layer_shapes.count("x"), current_time)
             wandb.save(f"layer_mi_{current_time}.csv")  # save csv file
             wandb.log(
                 {
