@@ -11,7 +11,14 @@ from pytorch_lightning import LightningModule
 from torchinfo import summary
 from torchmetrics.functional import accuracy
 
-from utils import calculate_layer_mi, grad_stats, log_now, plot_mi, weight_stats
+from utils import (
+    calculate_layer_mi,
+    dict_average,
+    grad_stats,
+    log_now,
+    plot_mi,
+    weight_stats,
+)
 
 
 class BaseModel(LightningModule):
@@ -20,9 +27,8 @@ class BaseModel(LightningModule):
     def __init__(self, cfg):
         super().__init__()
         self.cfg = cfg
-        self.layer_mi = []
-        self.weight_stats = []
-        self.grad_stats = []
+        self.grad_stats_per_step = []
+        self.results = []
 
     def on_train_start(self):
         """Log model summary and hyperparameters."""
@@ -55,18 +61,27 @@ class BaseModel(LightningModule):
     def on_after_backward(self):
         """Log gradient stats."""
         if self.cfg.log_grad_stats:
-            self.log_dict(grad_stats(self), logger=True)
+            self.grad_stats_per_step.append(grad_stats(self))
 
     def training_epoch_end(self, outputs):
         loss = torch.stack([i["loss"] for i in outputs]).double().mean()
         acc = torch.stack([i["train_acc"] for i in outputs]).double().mean()
         self.log_dict({"avg_train_acc": acc, "avg_train_loss": loss}, logger=True)
+        # Aggregate results
+        epoch_results = {"epoch": self.current_epoch}
         # Log weight stats
         if self.cfg.log_weight_stats:
-            self.log_dict(weight_stats(self), logger=True)
+            weight_stats_at_epoch = weight_stats(self)
+            epoch_results.update(weight_stats_at_epoch)
+        if self.cfg.log_grad_stats:
+            grad_stats_at_epoch = dict_average(self.grad_stats_per_step)
+            epoch_results.update(grad_stats_at_epoch)
+            self.grad_stats_per_step = []
         # Estimate mutual information
         if self.cfg.log_mi and log_now(self.current_epoch):
-            self.estimate_mi()
+            layer_mi_at_epoch = self.estimate_mi()
+            epoch_results.update(layer_mi_at_epoch)
+        self.results.append(epoch_results)
 
     def validation_step(self, batch, batch_idx):
         loss, acc = self.evaluate(batch, stage="val")
@@ -90,26 +105,25 @@ class BaseModel(LightningModule):
         if self.cfg.log_mi:
             # Save mutual information to csv and plot
             current_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-            df_mi = pd.DataFrame(self.layer_mi)
-            df_mi.to_csv(f"layer_mi_{current_time}.csv", index=False)
             title = (
                 self.cfg.dataset
-                + "-"
+                + "_"
                 + self.cfg.activation
-                + "-"
+                + "_"
                 + self.cfg.layer_shapes
-                + "-"
+                + "_"
                 + self.cfg.optimizer
             )
-            plot_mi(df_mi, title, self.cfg.layer_shapes.count("x"), current_time)
-            wandb.save(f"layer_mi_{current_time}.csv")  # save csv file
-            wandb.log(
-                {
-                    "information_plane": wandb.Image(
-                        f"information_plane_{current_time}.png"
-                    )
-                }
-            )  # save information plane plot
+            filename = f"{current_time}_{title}"
+            results = pd.DataFrame(self.results)
+            results.to_csv(f"{filename}.csv")
+            # Plot mutual information
+            plot_mi(results, filename, self.cfg.layer_shapes.count("x"), current_time)
+            # Save csv and plot to wandb
+            wandb.save(f"{filename}.csv")
+            wandb.save(f"{filename}.png")
+            wandb.save(f"{filename}.pdf")
+            wandb.log({"information_plane": wandb.Image(f"{filename}.png")})
 
     def configure_optimizers(self):
         if self.cfg.optimizer == "adam":
@@ -131,7 +145,7 @@ class BaseModel(LightningModule):
         with torch.no_grad():
             _, Ts_train = self(x_train.to(self.device))
             _, Ts_test = self(x_test.to(self.device))
-        layer_mi_at_epoch = {"epoch": self.current_epoch}
+        layer_mi_at_epoch = {}
         for idx, t in enumerate(Ts_train, 1):
             t = t.cpu()
             i_xt, i_ty = calculate_layer_mi(
@@ -146,7 +160,7 @@ class BaseModel(LightningModule):
             )
             layer_mi_at_epoch[f"l{idx}_i_xt_te"] = i_xt
             layer_mi_at_epoch[f"l{idx}_i_ty_te"] = i_ty
-        self.layer_mi.append(layer_mi_at_epoch)
+        return layer_mi_at_epoch
 
 
 class FCN(BaseModel):

@@ -57,7 +57,7 @@ def calculate_layer_mi(x_id, t, y, activation, num_bins=30):
     return i_xt, i_ty
 
 
-def plot_mi(df_i, title, num_cols, timestamp):
+def plot_mi(df_i, title, num_cols):
     """Plot the mutual information for each layer."""
     mpl.rcParams.update({"font.size": 20})
     fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(17, 8))
@@ -98,8 +98,9 @@ def plot_mi(df_i, title, num_cols, timestamp):
     fig.colorbar(mappable2, label="Epochs", cax=cax)
     fig.suptitle(title, fontsize="x-large")
     fig.tight_layout()
-    fig.savefig(f"information_plane_{timestamp}.pdf", bbox_inches="tight")
-    fig.savefig(f"information_plane_{timestamp}.png", bbox_inches="tight", dpi=300)
+    fig.savefig(title + ".pdf", bbox_inches="tight")
+    fig.savefig(title + ".png", bbox_inches="tight", dpi=300)
+    plt.close(fig)
 
 
 @torch.no_grad()
@@ -108,15 +109,15 @@ def weight_stats(module):
     stats, weights = {}, []
     for pn, p in module.named_parameters():
         norm = p.data.norm(p=2)
-        stats[f"weight_mean_{pn}"] = p.data.mean() / norm
-        stats[f"weight_std_{pn}"] = p.data.std() / norm
-        stats[f"weight_norm_{pn}"] = norm
+        stats[f"weight_mean_{pn}"] = (p.data.mean() / norm).item()
+        stats[f"weight_std_{pn}"] = (p.data.std() / norm).item()
+        stats[f"weight_norm_{pn}"] = norm.item()
         weights.append(p.data.flatten())
     weights = torch.cat(weights)
     norm_all = weights.norm(p=2)
-    stats["weight_mean_all"] = weights.mean() / norm_all
-    stats["weight_std_all"] = weights.std() / norm_all
-    stats["weight_norm_all"] = norm_all
+    stats["weight_mean_all"] = (weights.mean() / norm_all).item()
+    stats["weight_std_all"] = (weights.std() / norm_all).item()
+    stats["weight_norm_all"] = norm_all.item()
     return stats
 
 
@@ -127,15 +128,15 @@ def grad_stats(module):
     for pn, p in module.named_parameters():
         if p.grad is not None:
             norm = p.grad.data.norm(p=2)
-            stats[f"grad_mean_{pn}"] = p.grad.data.mean() / norm
-            stats[f"grad_std_{pn}"] = p.grad.data.std() / norm
-            stats[f"grad_norm_{pn}"] = p.grad.data.norm(p=2)
+            stats[f"grad_mean_{pn}"] = (p.grad.data.mean() / norm).item()
+            stats[f"grad_std_{pn}"] = (p.grad.data.std() / norm).item()
+            stats[f"grad_norm_{pn}"] = norm.item()
             grads.append(p.grad.data.flatten())
     grads = torch.cat(grads)
     norm_all = grads.norm(p=2)
-    stats["grad_mean_all"] = grads.mean() / norm_all
-    stats["grad_std_all"] = grads.std() / norm_all
-    stats["grad_norm_all"] = norm_all
+    stats["grad_mean_all"] = (grads.mean() / norm_all).item()
+    stats["grad_std_all"] = (grads.std() / norm_all).item()
+    stats["grad_norm_all"] = norm_all.item()
     return stats
 
 
@@ -175,3 +176,8 @@ def make_binary(x, y, labels):
     x, y = x[binary_label_indices], y[binary_label_indices]
     y = torch.where(y == labels[0], torch.tensor(0), torch.tensor(1))
     return x, y
+
+
+def dict_average(dicts):
+    """Average a list of dictionaries."""
+    return {k: np.mean([d[k] for d in dicts]) for k in dicts[0]}
