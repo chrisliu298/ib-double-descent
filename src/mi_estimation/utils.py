@@ -105,38 +105,38 @@ def plot_mi(df_i, title, num_cols, timestamp):
 @torch.no_grad()
 def weight_stats(module):
     """Calculate the mean, standard deviation, and norm of the weights in a model."""
-    means = {}
-    stds = {}
-    norms = {}
-    weights = []
+    stats, weights = {}, []
     for pn, p in module.named_parameters():
-        means[f"weight_mean_{pn}"] = p.data.mean()
-        stds[f"weight_std_{pn}"] = p.data.std()
-        norms[f"weight_norm_{pn}"] = p.data.norm(p=2)
+        norm = p.data.norm(p=2)
+        stats[f"weight_mean_{pn}"] = p.data.mean() / norm
+        stats[f"weight_std_{pn}"] = p.data.std() / norm
+        stats[f"weight_norm_{pn}"] = norm
         weights.append(p.data.flatten())
-    means["weight_mean_all"] = torch.cat(weights).mean()
-    stds["weight_std_all"] = torch.cat(weights).std()
-    norms["weight_norm_all"] = torch.cat(weights).norm(p=2)
-    return {**means, **stds, **norms}
+    weights = torch.cat(weights)
+    norm_all = weights.norm(p=2)
+    stats["weight_mean_all"] = weights.mean() / norm_all
+    stats["weight_std_all"] = weights.std() / norm_all
+    stats["weight_norm_all"] = norm_all
+    return stats
 
 
 @torch.no_grad()
 def grad_stats(module):
     """Calculate the mean, standard deviation, and norm of the gradients in a model."""
-    means = {}
-    stds = {}
-    norms = {}
-    grads = []
+    stats, grads = {}, []
     for pn, p in module.named_parameters():
         if p.grad is not None:
-            means[f"grad_mean_{pn}"] = p.grad.data.mean()
-            stds[f"grad_std_{pn}"] = p.grad.data.std()
-            norms[f"grad_norm_{pn}"] = p.grad.data.norm(p=2)
+            norm = p.grad.data.norm(p=2)
+            stats[f"grad_mean_{pn}"] = p.grad.data.mean() / norm
+            stats[f"grad_std_{pn}"] = p.grad.data.std() / norm
+            stats[f"grad_norm_{pn}"] = p.grad.data.norm(p=2)
             grads.append(p.grad.data.flatten())
-    means["grad_mean_all"] = torch.cat(grads).mean()
-    stds["grad_std_all"] = torch.cat(grads).std()
-    norms["grad_norm_all"] = torch.cat(grads).norm(p=2)
-    return {**means, **stds, **norms}
+    grads = torch.cat(grads)
+    norm_all = grads.norm(p=2)
+    stats["grad_mean_all"] = grads.mean() / norm_all
+    stats["grad_std_all"] = grads.std() / norm_all
+    stats["grad_norm_all"] = norm_all
+    return stats
 
 
 def log_now(epoch):
