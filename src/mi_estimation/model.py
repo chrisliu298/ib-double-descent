@@ -118,7 +118,7 @@ class BaseModel(LightningModule):
             results = pd.DataFrame(self.results)
             results.to_csv(f"{filename}.csv")
             # Plot mutual information
-            plot_mi(results, filename, self.cfg.layer_shapes.count("x"), current_time)
+            plot_mi(results, filename, self.cfg.layer_shapes.count("x"))
             # Save csv and plot to wandb
             wandb.save(f"{filename}.csv")
             wandb.save(f"{filename}.png")
