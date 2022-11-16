@@ -1,0 +1,12 @@
+# see info here: https://ucsd-prp.gitlab.io/userdocs/tutorial/storage/
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ib-dd-data-volume
+spec:
+  storageClassName: rook-cephfs
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 200Gi
