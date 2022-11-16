@@ -26,7 +26,7 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: gitlab-registry.nrp-nautilus.io
-          username: "kingb12"
+          username: "ibdd"
           password: ${{ secrets.GITLAB_DOCKER_REGISTRY_TOKEN }}
       -
         name: Build and push
@@ -35,4 +35,4 @@ jobs:
           push: true
           file: k8s/Dockerfile
           tags: |
-            gitlab.nrp-nautilus.io/cse208-ib-double-descent/ib_double_descent:latest
+            gitlab-registry.nrp-nautilus.io/cse208-ib-double-descent/ib_double_descent:latest
