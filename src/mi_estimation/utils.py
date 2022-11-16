@@ -57,7 +57,7 @@ def calculate_layer_mi(x_id, t, y, activation, num_bins=30):
     return i_xt, i_ty
 
 
-def plot_mi(df_i, num_cols, timestamp):
+def plot_mi(df_i, title, num_cols, timestamp):
     """Plot the mutual information for each layer."""
     mpl.rcParams.update({"font.size": 20})
     fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(17, 8))
@@ -96,9 +96,10 @@ def plot_mi(df_i, num_cols, timestamp):
     fig.colorbar(mappable1, label="Epochs", cax=cax)
     fig.delaxes(fig.axes[2])
     fig.colorbar(mappable2, label="Epochs", cax=cax)
+    fig.suptitle(title, fontsize="x-large")
     fig.tight_layout()
     fig.savefig(f"information_plane_{timestamp}.pdf", bbox_inches="tight")
-    fig.savefig(f"information_plane_{timestamp}.png", bbox_inches="tight", dpi=600)
+    fig.savefig(f"information_plane_{timestamp}.png", bbox_inches="tight", dpi=300)
 
 
 @torch.no_grad()
