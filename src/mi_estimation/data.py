@@ -1,6 +1,5 @@
 import os
 
-import numpy as np
 import scipy.io as sio
 import torch
 from pytorch_lightning import LightningDataModule
