@@ -8,8 +8,7 @@ on:
     # stale code.
     paths:
       - 'k8s/Dockerfile'
-      - 'setup.cfg'
-      - 'pyproject.toml'
+      - 'requirements.txt'
       - '.github/workflows/docker_build.yml'
 
 jobs:
