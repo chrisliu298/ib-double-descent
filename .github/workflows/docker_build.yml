@@ -10,6 +10,7 @@ on:
       - 'k8s/Dockerfile'
       - 'setup.cfg'
       - 'pyproject.toml'
+      - '.github/workflows/docker_build.yml'
 
 jobs:
   docker:
