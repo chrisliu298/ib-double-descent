@@ -69,7 +69,8 @@ spec:
             cd ib_double_descent &&
             git fetch && git pull && git reset --hard origin/main &&
             echo "job ready to start" &&
-            conda run --no-capture-output -p ./venv python src/mi_estimation/train.py \
+            cd src/mi_estimation &&
+            conda run --no-capture-output -p ../../venv python train.py \
                 --project_id "dnn-info-plane-better-plot" \
                 --dataset "szt_g1" \
                 --layer_shapes "12x10x7x5x4x3x2" \
