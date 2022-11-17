@@ -3,3 +3,5 @@ torchinfo
 wandb
 easydict
 scipy
+matplotlib
+pandas
