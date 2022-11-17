@@ -70,10 +70,10 @@ class BaseModel(LightningModule):
         # Aggregate results
         epoch_results = {"epoch": self.current_epoch}
         # Log weight stats
-        if self.cfg.log_weight_stats:
+        if self.cfg.log_weight_stats and log_now(self.current_epoch):
             weight_stats_at_epoch = weight_stats(self)
             epoch_results.update(weight_stats_at_epoch)
-        if self.cfg.log_grad_stats:
+        if self.cfg.log_grad_stats and log_now(self.current_epoch):
             grad_stats_at_epoch = dict_average(self.grad_stats_per_step)
             epoch_results.update(grad_stats_at_epoch)
             self.grad_stats_per_step = []
