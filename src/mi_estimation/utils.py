@@ -64,13 +64,13 @@ def plot_mi(df_i, title, num_cols):
     ax1.set_xlabel(r"$I(X; T)$")
     ax1.set_ylabel(r"$I(T; Y)$")
     ax1.set_title("Train")
-    ax1.set_xlim(0, 12.5)
-    ax1.set_ylim(0, 1.05)
+    # ax1.set_xlim(0, 12.5)
+    # ax1.set_ylim(0, 1.05)
     ax2.set_xlabel(r"$I(X; T)$")
     ax2.set_ylabel(r"$I(T; Y)$")
     ax2.set_title("Test")
-    ax2.set_xlim(0, 12.5)
-    ax2.set_ylim(0, 1.05)
+    # ax2.set_xlim(0, 12.5)
+    # ax2.set_ylim(0, 1.05)
     for i in range(num_cols):
         mappable1 = ax1.scatter(
             df_i[f"l{i+1}_i_xt_tr"],
