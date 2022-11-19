@@ -111,6 +111,7 @@ def main():
         benchmark=True,
         logger=logger,
         enable_progress_bar=cfg.verbose > 0,
+        num_sanity_val_steps=0,
     )
     # Train and test
     trainer.fit(model=model, datamodule=datamodule)
