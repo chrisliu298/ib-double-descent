@@ -189,9 +189,9 @@ class FCN(BaseModel):
         nn.init.zeros_(self.fc.bias)
         # Choose activation function
         if cfg.activation == "relu":
-            self.activation = nn.ReLU()
+            self.activation = torch.relu
         elif cfg.activation == "tanh":
-            self.activation = nn.Tanh()
+            self.activation = torch.tanh
 
     def forward(self, x):
         if x.dim() > 2:
