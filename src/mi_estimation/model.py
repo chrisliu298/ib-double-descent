@@ -1,4 +1,3 @@
-import datetime
 from math import sqrt
 
 import pandas as pd
@@ -110,7 +109,6 @@ class BaseModel(LightningModule):
     def on_train_end(self):
         if self.cfg.log_mi:
             # Save mutual information to csv and plot
-            current_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
             title = (
                 self.cfg.dataset
                 + "_"
@@ -120,16 +118,15 @@ class BaseModel(LightningModule):
                 + "_"
                 + self.cfg.optimizer
             )
-            filename = f"{current_time}_{title}"
             results = pd.DataFrame(self.results)
-            results.to_csv(f"{filename}.csv", index=False)
+            results.to_csv(f"{title}.csv", index=False)
             # Plot mutual information
-            plot_mi(results, filename, self.cfg.layer_shapes.count("x"))
+            plot_mi(results, title, self.cfg.layer_shapes.count("x"))
             # Save csv and plot to wandb
-            wandb.save(f"{filename}.csv")
-            wandb.save(f"{filename}.png")
-            wandb.save(f"{filename}.pdf")
-            wandb.log({"information_plane": wandb.Image(f"{filename}.png")})
+            wandb.save(f"{title}.csv")
+            wandb.save(f"{title}.png")
+            wandb.save(f"{title}.pdf")
+            wandb.log({"information_plane": wandb.Image(f"{title}.png")})
 
     def configure_optimizers(self):
         if self.cfg.optimizer == "adam":
