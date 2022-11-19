@@ -7,7 +7,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 import wandb
 from pytorch_lightning import LightningModule
-from torchinfo import summary
 from torchmetrics.functional import accuracy
 
 from utils import (
@@ -29,20 +28,6 @@ class BaseModel(LightningModule):
         self.train_acc_at_epoch = None
         self.grad_stats_per_step = []
         self.results = []
-
-    def on_train_start(self):
-        """Log model summary and hyperparameters."""
-        input_size = self.trainer.datamodule.x_train.shape[1]
-        model_summary = summary(
-            self, input_size=(1, input_size), verbose=self.cfg.verbose
-        )
-        self.log_dict(
-            {
-                "total_params": float(model_summary.total_params),
-                "trainable_params": float(model_summary.trainable_params),
-            },
-            logger=True,
-        )
 
     def evaluate(self, batch, stage=None):
         """Evaluate the model on a batch. This is used for training, validation
@@ -93,8 +78,8 @@ class BaseModel(LightningModule):
             if self.cfg.log_mi:
                 layer_mi_at_epoch = self.estimate_mi()
                 epoch_results.update(layer_mi_at_epoch)
-            epoch_results["train_acc"] = self.train_acc_at_epoch
-            epoch_results["val_acc"] = acc
+            epoch_results["train_acc"] = self.train_acc_at_epoch.item()
+            epoch_results["val_acc"] = acc.item()
             self.results.append(epoch_results)
 
     def test_step(self, batch, batch_idx):

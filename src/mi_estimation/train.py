@@ -55,7 +55,6 @@ def parse_args():
     # Experiment
     parser.add_argument("--project_id", type=str, default="dnn-mi")
     parser.add_argument("--seed", type=int)
-    parser.add_argument("--verbose", type=int, default=0)
     parser.add_argument("--wandb", action="store_true")
     parser.add_argument("--log_mi", action="store_true")
     parser.add_argument("--log_grad_stats", action="store_true")
@@ -110,12 +109,11 @@ def main():
         check_val_every_n_epoch=1,
         benchmark=True,
         logger=logger,
-        enable_progress_bar=cfg.verbose > 0,
-        num_sanity_val_steps=0,
+        enable_progress_bar=False,
     )
     # Train and test
     trainer.fit(model=model, datamodule=datamodule)
-    trainer.test(model=model, datamodule=datamodule, verbose=cfg.verbose > 0)
+    trainer.test(model=model, datamodule=datamodule)
     wandb.finish(quiet=True)
 
 
