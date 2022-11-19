@@ -65,7 +65,7 @@ class BaseModel(LightningModule):
         # Aggregate results
         should_log_now = log_now(self.current_epoch)
         # Log weight stats
-        if should_log_now:
+        if should_log_now and self.trainer.state.status != "sanity_check":
             epoch_results = {"epoch": self.current_epoch}
             if self.cfg.log_weight_stats:
                 weight_stats_at_epoch = weight_stats(self)
