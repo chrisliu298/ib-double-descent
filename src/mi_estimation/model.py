@@ -27,6 +27,7 @@ class BaseModel(LightningModule):
     def __init__(self, cfg):
         super().__init__()
         self.cfg = cfg
+        self.train_acc_at_epoch = None
         self.grad_stats_per_step = []
         self.results = []
 
@@ -67,21 +68,7 @@ class BaseModel(LightningModule):
         loss = torch.stack([i["loss"] for i in outputs]).double().mean()
         acc = torch.stack([i["train_acc"] for i in outputs]).double().mean()
         self.log_dict({"avg_train_acc": acc, "avg_train_loss": loss}, logger=True)
-        # Aggregate results
-        epoch_results = {"epoch": self.current_epoch}
-        # Log weight stats
-        if self.cfg.log_weight_stats and log_now(self.current_epoch):
-            weight_stats_at_epoch = weight_stats(self)
-            epoch_results.update(weight_stats_at_epoch)
-        if self.cfg.log_grad_stats and log_now(self.current_epoch):
-            grad_stats_at_epoch = dict_average(self.grad_stats_per_step)
-            epoch_results.update(grad_stats_at_epoch)
-            self.grad_stats_per_step = []
-        # Estimate mutual information
-        if self.cfg.log_mi and log_now(self.current_epoch):
-            layer_mi_at_epoch = self.estimate_mi()
-            epoch_results.update(layer_mi_at_epoch)
-        self.results.append(epoch_results)
+        self.train_acc_at_epoch = acc
 
     def validation_step(self, batch, batch_idx):
         loss, acc = self.evaluate(batch, stage="val")
@@ -91,6 +78,25 @@ class BaseModel(LightningModule):
         loss = torch.stack([i["val_loss"] for i in outputs]).double().mean()
         acc = torch.stack([i["val_acc"] for i in outputs]).double().mean()
         self.log_dict({"avg_val_acc": acc, "avg_val_loss": loss}, logger=True)
+        # Aggregate results
+        should_log_now = log_now(self.current_epoch)
+        # Log weight stats
+        if should_log_now:
+            epoch_results = {"epoch": self.current_epoch}
+            if self.cfg.log_weight_stats:
+                weight_stats_at_epoch = weight_stats(self)
+                epoch_results.update(weight_stats_at_epoch)
+            if self.cfg.log_grad_stats:
+                grad_stats_at_epoch = dict_average(self.grad_stats_per_step)
+                epoch_results.update(grad_stats_at_epoch)
+                self.grad_stats_per_step = []
+            # Estimate mutual information
+            if self.cfg.log_mi:
+                layer_mi_at_epoch = self.estimate_mi()
+                epoch_results.update(layer_mi_at_epoch)
+            epoch_results["train_acc"] = self.train_acc_at_epoch
+            epoch_results["val_acc"] = acc
+            self.results.append(epoch_results)
 
     def test_step(self, batch, batch_idx):
         loss, acc = self.evaluate(batch, "test")
