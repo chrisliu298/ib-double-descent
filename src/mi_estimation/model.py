@@ -65,7 +65,7 @@ class BaseModel(LightningModule):
         acc = torch.stack([i["train_acc"] for i in outputs]).double().mean()
         self.log_dict({"avg_train_acc": acc, "avg_train_loss": loss}, logger=True)
         if self.cfg.lr_scheduler != "constant":
-            self.lr_scheduler.step()
+            self.lr_schedulers().step()
         # Aggregate results
         should_log_now = log_now(self.current_epoch) or self.current_epoch == (
             self.cfg.max_epochs - 1
