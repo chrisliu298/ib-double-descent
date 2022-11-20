@@ -88,6 +88,17 @@ class MNISTDataModule(BaseDataModule):
             [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
         )
         self.x_transforms = transforms.Compose(x_transforms)
+        y_transforms = None
+        if cfg.loss == "mse":
+            num_classes = int(self.cfg.layer_shapes.split("x")[-1])
+            y_transforms = transforms.Compose(
+                [
+                    lambda y: torch.tensor(y),
+                    lambda y: torch.nn.functional.one_hot(y, num_classes),
+                    lambda y: y.float(),
+                ]
+            )
+        self.y_transforms = y_transforms
 
     def prepare_data(self):
         # download data
@@ -97,10 +108,16 @@ class MNISTDataModule(BaseDataModule):
     def setup(self, stage=None):
         # load data
         self.train_dataset = datasets.MNIST(
-            "/tmp/data", train=True, transform=self.x_transforms
+            "/tmp/data",
+            train=True,
+            transform=self.x_transforms,
+            target_transform=self.y_transforms,
         )
         self.test_dataset = datasets.MNIST(
-            "/tmp/data", train=False, transform=self.x_transforms
+            "/tmp/data",
+            train=False,
+            transform=self.x_transforms,
+            target_transform=self.y_transforms,
         )
         # if (
         #     self.cfg.train_size is not None
@@ -124,8 +141,8 @@ class MNISTDataModule(BaseDataModule):
             )
         self.x_train = torch.cat([x[0] for x in self.train_dataset])
         self.x_test = torch.cat([x[0] for x in self.test_dataset])
-        self.y_train = self.train_dataset.targets
-        self.y_test = self.test_dataset.targets
+        self.y_train = torch.stack([x[1] for x in self.train_dataset])
+        self.y_test = torch.stack([x[1] for x in self.test_dataset])
         self.x_train_id = torch.arange(self.x_train.shape[0])
         self.x_test_id = torch.arange(self.x_test.shape[0])
 
@@ -141,6 +158,17 @@ class FashionMNISTDataModule(BaseDataModule):
             [transforms.ToTensor(), transforms.Normalize((0.2860,), (0.3530,))]
         )
         self.x_transforms = transforms.Compose(x_transforms)
+        y_transforms = None
+        if cfg.loss == "mse":
+            num_classes = int(self.cfg.layer_shapes.split("x")[-1])
+            y_transforms = transforms.Compose(
+                [
+                    lambda y: torch.tensor(y),
+                    lambda y: torch.nn.functional.one_hot(y, num_classes),
+                    lambda y: y.float(),
+                ]
+            )
+        self.y_transforms = y_transforms
 
     def prepare_data(self):
         # download data
@@ -150,10 +178,16 @@ class FashionMNISTDataModule(BaseDataModule):
     def setup(self, stage=None):
         # load data
         self.train_dataset = datasets.FashionMNIST(
-            "/tmp/data", train=True, transform=self.x_transforms
+            "/tmp/data",
+            train=True,
+            transform=self.x_transforms,
+            target_transform=self.y_transforms,
         )
         self.test_dataset = datasets.FashionMNIST(
-            "/tmp/data", train=False, transform=self.x_transforms
+            "/tmp/data",
+            train=False,
+            transform=self.x_transforms,
+            target_transform=self.y_transforms,
         )
         # if (
         #     self.cfg.train_size is not None
@@ -177,7 +211,7 @@ class FashionMNISTDataModule(BaseDataModule):
             )
         self.x_train = torch.cat([x[0] for x in self.train_dataset])
         self.x_test = torch.cat([x[0] for x in self.test_dataset])
-        self.y_train = self.train_dataset.targets
-        self.y_test = self.test_dataset.targets
+        self.y_train = torch.stack([x[1] for x in self.train_dataset])
+        self.y_test = torch.stack([x[1] for x in self.test_dataset])
         self.x_train_id = torch.arange(self.x_train.shape[0])
         self.x_test_id = torch.arange(self.x_test.shape[0])

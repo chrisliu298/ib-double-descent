@@ -32,11 +32,8 @@ class BaseModel(LightningModule):
         self.logged_in_train = False
 
     def on_train_start(self):
-        self.log(
-            "total_params",
-            float(sum(p.numel() for p in self.parameters())),
-            logger=True,
-        )
+        self.total_params = sum(p.numel() for p in self.parameters())
+        self.log("total_params", float(self.total_params), logger=True)
         datamodule = self.trainer.datamodule
         self.log("train_size", float(len(datamodule.train_dataset)), logger=True)
         self.log("test_size", float(len(datamodule.test_dataset)), logger=True)
@@ -46,7 +43,11 @@ class BaseModel(LightningModule):
         and testing."""
         x, y = batch
         output, _ = self(x)
-        loss = F.cross_entropy(output, y)
+        if self.cfg.loss == "ce":
+            loss = F.cross_entropy(output, y)
+        elif self.cfg.loss == "mse":
+            loss = F.mse_loss(output, y)
+            y = y.argmax(dim=1)
         acc = accuracy(output.argmax(dim=1), y)
         self.log_dict({f"{stage}_loss": loss, f"{stage}_acc": acc}, logger=True)
         return loss, acc
@@ -129,6 +130,10 @@ class BaseModel(LightningModule):
                 + self.cfg.layer_shapes
                 + "_"
                 + self.cfg.optimizer
+                + "_"
+                + self.cfg.loss
+                + "_"
+                + str(self.total_params)
             )
             results = pd.DataFrame(self.results)
             results.to_csv(f"{title}.csv", index=False)
@@ -160,6 +165,10 @@ class BaseModel(LightningModule):
         x_test = self.trainer.datamodule.x_test
         y_test = self.trainer.datamodule.y_test
         x_test_id = self.trainer.datamodule.x_test_id
+        if y_train.dim() == 2:
+            y_train = y_train.argmax(dim=1)
+        if y_test.dim() == 2:
+            y_test = y_test.argmax(dim=1)
         with torch.no_grad():
             _, Ts_train = self(x_train.to(self.device))
             _, Ts_test = self(x_test.to(self.device))
