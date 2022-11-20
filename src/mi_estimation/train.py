@@ -36,7 +36,7 @@ def parse_args():
         "--lr_scheduler",
         type=str,
         default="constant",
-        choices=["constant", "inverse_sqrt", "inverse_slow"],
+        choices=["constant", "inverse_sqrt", "inverse"],
     )
     parser.add_argument("--max_epochs", type=int, default=10000)
     parser.add_argument("--momentum", type=float, default=0.0)
