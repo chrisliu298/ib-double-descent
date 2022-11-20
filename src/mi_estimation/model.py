@@ -14,9 +14,9 @@ from utils import (
     dict_average,
     grad_stats,
     log_now,
+    lr_schedule,
     plot_mi,
     weight_stats,
-    lr_schedule,
 )
 
 
