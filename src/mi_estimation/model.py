@@ -86,7 +86,7 @@ class BaseModel(LightningModule):
                 layer_mi_at_epoch = self.estimate_mi()
                 self.epoch_results.update(layer_mi_at_epoch)
             self.epoch_results["train_acc"] = acc.item()
-            self.epoch_results["val_acc"] = acc.item()
+            self.epoch_results["train_loss"] = loss.item()
 
     def validation_step(self, batch, batch_idx):
         loss, acc = self.evaluate(batch, stage="val")
@@ -97,7 +97,8 @@ class BaseModel(LightningModule):
         acc = torch.stack([i["val_acc"] for i in outputs]).double().mean()
         self.log_dict({"avg_val_acc": acc, "avg_val_loss": loss}, logger=True)
         if log_now(self.current_epoch) and self.logged_in_train:
-            self.epoch_results["val_acc"] = acc.item()
+            self.epoch_results["test_acc"] = acc.item()
+            self.epoch_results["test_loss"] = loss.item()
             self.results.append(self.epoch_results)
             self.logged_in_train = False
 
