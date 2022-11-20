@@ -38,6 +38,7 @@ def parse_args():
         default="constant",
         choices=["constant", "inverse_sqrt", "inverse"],
     )
+    parser.add_argument("--lr_decay_interval", type=int, default=1)
     parser.add_argument("--max_epochs", type=int, default=10000)
     parser.add_argument("--momentum", type=float, default=0.0)
     parser.add_argument(
