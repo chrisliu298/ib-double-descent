@@ -181,3 +181,9 @@ def make_binary(x, y, labels):
 def dict_average(dicts):
     """Average a list of dictionaries."""
     return {k: np.mean([d[k] for d in dicts]) for k in dicts[0]}
+
+
+def sample_data(x, y, num_samples):
+    """Sample a subset of the data."""
+    indices = np.random.choice(len(x), num_samples, replace=False)
+    return x[indices], y[indices]

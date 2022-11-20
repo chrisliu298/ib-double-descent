@@ -6,7 +6,13 @@ from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader, TensorDataset
 from torchvision import datasets, transforms
 
-from utils import add_label_noise, make_binary, standardize, train_test_split
+from utils import (
+    add_label_noise,
+    make_binary,
+    sample_data,
+    standardize,
+    train_test_split,
+)
 
 
 class BaseDataModule(LightningDataModule):
@@ -102,6 +108,13 @@ class MNISTDataModule(BaseDataModule):
         self.test_dataset = datasets.MNIST(
             "/tmp/data", train=False, transform=self.x_transforms
         )
+        if (
+            self.cfg.train_size is not None
+            and len(self.train_dataset) < self.cfg.train_size
+        ):
+            self.train_dataset.data, self.train_dataset.targets = sample_data(
+                self.train_dataset.data, self.train_dataset.targets, self.cfg.train_size
+            )
         if self.cfg.binary_label:
             binary_labels = torch.tensor([0, 6])
             self.train_dataset.data, self.train_dataset.targets = make_binary(
@@ -148,6 +161,13 @@ class FashionMNISTDataModule(BaseDataModule):
         self.test_dataset = datasets.FashionMNIST(
             "/tmp/data", train=False, transform=self.x_transforms
         )
+        if (
+            self.cfg.train_size is not None
+            and len(self.train_dataset) < self.cfg.train_size
+        ):
+            self.train_dataset.data, self.train_dataset.targets = sample_data(
+                self.train_dataset.data, self.train_dataset.targets, self.cfg.train_size
+            )
         if self.cfg.binary_label:
             binary_labels = torch.tensor([0, 6])
             self.train_dataset.data, self.train_dataset.targets = make_binary(
