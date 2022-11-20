@@ -104,7 +104,7 @@ def main():
     )
     # Train and test
     trainer.fit(model=model, datamodule=datamodule)
-    trainer.test(model=model, datamodule=datamodule)
+    trainer.test(model=model, datamodule=datamodule, verbose=False)
     wandb.finish(quiet=True)
 
 
