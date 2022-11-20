@@ -16,6 +16,7 @@ from utils import (
     log_now,
     plot_mi,
     weight_stats,
+    lr_schedule,
 )
 
 
@@ -63,6 +64,8 @@ class BaseModel(LightningModule):
         loss = torch.stack([i["loss"] for i in outputs]).double().mean()
         acc = torch.stack([i["train_acc"] for i in outputs]).double().mean()
         self.log_dict({"avg_train_acc": acc, "avg_train_loss": loss}, logger=True)
+        if self.cfg.lr_scheduler != "constant":
+            self.lr_scheduler.step()
         # Aggregate results
         should_log_now = log_now(self.current_epoch) or self.current_epoch == (
             self.cfg.max_epochs - 1
@@ -136,7 +139,10 @@ class BaseModel(LightningModule):
             optimizer = optim.SGD(
                 self.parameters(), lr=self.cfg.lr, momentum=self.cfg.momentum
             )
-        return optimizer
+        lr_scheduler = optim.lr_scheduler.LambdaLR(
+            optimizer, lr_schedule(self.cfg.lr_scheduler)
+        )
+        return {"optimizer": optimizer, "lr_scheduler": lr_scheduler}
 
     def estimate_mi(self):
         """Estimate mutual information."""

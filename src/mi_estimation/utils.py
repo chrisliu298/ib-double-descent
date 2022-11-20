@@ -188,3 +188,12 @@ def sample_data(x, y, num_samples):
     """Sample a subset of the data."""
     indices = np.random.choice(len(x), num_samples, replace=False)
     return x[indices], y[indices]
+
+
+def lr_schedule(lr_schedule_type):
+    if lr_schedule_type == "constant":
+        return lambda t: 1
+    elif lr_schedule_type == "inverse":
+        return lambda t: 1 / (0.05 * t + 1)
+    elif lr_schedule_type == "inverse_sqrt":
+        return lambda t: 1 / (t + 1) ** 0.5
