@@ -81,12 +81,13 @@ class MNISTDataModule(BaseDataModule):
     def __init__(self, cfg):
         super().__init__(cfg)
         self.cfg = cfg
-        self.transform = transforms.Compose(
-            [
-                transforms.ToTensor(),
-                transforms.Normalize((0.1307,), (0.3081,)),
-            ]
+        x_transforms = []
+        if cfg.image_size is not None:
+            x_transforms.append(transforms.Resize(cfg.image_size))
+        x_transforms.extend(
+            [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
         )
+        self.x_transforms = transforms.Compose(x_transforms)
 
     def prepare_data(self):
         # download data
@@ -96,14 +97,23 @@ class MNISTDataModule(BaseDataModule):
     def setup(self, stage=None):
         # load data
         self.train_dataset = datasets.MNIST(
-            "/tmp/data", train=True, transform=self.transform
+            "/tmp/data", train=True, transform=self.x_transforms
         )
         self.test_dataset = datasets.MNIST(
-            "/tmp/data", train=False, transform=self.transform
+            "/tmp/data", train=False, transform=self.x_transforms
         )
+        if self.cfg.binary_label:
+            binary_labels = torch.tensor([0, 6])
+            self.train_dataset.data, self.train_dataset.targets = make_binary(
+                self.train_dataset.data, self.train_dataset.targets, binary_labels
+            )
+            self.test_dataset.data, self.test_dataset.targets = make_binary(
+                self.test_dataset.data, self.test_dataset.targets, binary_labels
+            )
         if self.cfg.label_noise > 0:
+            num_labels = 2 if self.cfg.binary_label else 10
             self.train_dataset.targets = add_label_noise(
-                self.train_dataset.targets, self.cfg.label_noise, 10
+                self.train_dataset.targets, self.cfg.label_noise, num_labels
             )
         self.x_train, self.y_train = self.train_dataset.data, self.train_dataset.targets
         self.x_test, self.y_test = self.test_dataset.data, self.test_dataset.targets
@@ -117,12 +127,13 @@ class FashionMNISTDataModule(BaseDataModule):
     def __init__(self, cfg):
         super().__init__(cfg)
         self.cfg = cfg
-        self.transform = transforms.Compose(
-            [
-                transforms.ToTensor(),
-                transforms.Normalize((0.2860,), (0.3530,)),
-            ]
+        x_transforms = []
+        if cfg.image_size is not None:
+            x_transforms.append(transforms.Resize(cfg.image_size))
+        x_transforms.extend(
+            [transforms.ToTensor(), transforms.Normalize((0.2860,), (0.3530,))]
         )
+        self.x_transforms = transforms.Compose(x_transforms)
 
     def prepare_data(self):
         # download data
@@ -132,104 +143,23 @@ class FashionMNISTDataModule(BaseDataModule):
     def setup(self, stage=None):
         # load data
         self.train_dataset = datasets.FashionMNIST(
-            "/tmp/data", train=True, transform=self.transform
+            "/tmp/data", train=True, transform=self.x_transforms
         )
         self.test_dataset = datasets.FashionMNIST(
-            "/tmp/data", train=False, transform=self.transform
+            "/tmp/data", train=False, transform=self.x_transforms
         )
-        if self.cfg.label_noise > 0:
-            self.train_dataset.targets = add_label_noise(
-                self.train_dataset.targets, self.cfg.label_noise, 10
+        if self.cfg.binary_label:
+            binary_labels = torch.tensor([0, 6])
+            self.train_dataset.data, self.train_dataset.targets = make_binary(
+                self.train_dataset.data, self.train_dataset.targets, binary_labels
             )
-        self.x_train, self.y_train = self.train_dataset.data, self.train_dataset.targets
-        self.x_test, self.y_test = self.test_dataset.data, self.test_dataset.targets
-        self.x_train = standardize(self.x_train, 0.2860, 0.3530).view(-1, 784)
-        self.x_test = standardize(self.x_test, 0.2860, 0.3530).view(-1, 784)
-        self.x_train_id = torch.arange(self.x_train.shape[0])
-        self.x_test_id = torch.arange(self.x_test.shape[0])
-
-
-class BinaryMNISTDataModule(BaseDataModule):
-    """A binary version of MNIST dataset that only contains 0 and 6."""
-
-    def __init__(self, cfg):
-        super().__init__(cfg)
-        self.cfg = cfg
-        self.labels = torch.tensor([0, 6])
-        self.transform = transforms.Compose(
-            [
-                transforms.ToTensor(),
-                transforms.Normalize((0.1307,), (0.3081,)),
-            ]
-        )
-
-    def prepare_data(self):
-        # download data
-        datasets.MNIST("/tmp/data", train=True, download=True)
-        datasets.MNIST("/tmp/data", train=False, download=True)
-
-    def setup(self, stage=None):
-        # load data
-        self.train_dataset = datasets.MNIST(
-            "/tmp/data", train=True, transform=self.transform
-        )
-        self.test_dataset = datasets.MNIST(
-            "/tmp/data", train=False, transform=self.transform
-        )
-        self.train_dataset.data, self.train_dataset.targets = make_binary(
-            self.train_dataset.data, self.train_dataset.targets, self.labels
-        )
-        self.test_dataset.data, self.test_dataset.targets = make_binary(
-            self.test_dataset.data, self.test_dataset.targets, self.labels
-        )
-        if self.cfg.label_noise > 0:
-            self.train_dataset.targets = add_label_noise(
-                self.train_dataset.targets, self.cfg.label_noise, 2
+            self.test_dataset.data, self.test_dataset.targets = make_binary(
+                self.test_dataset.data, self.test_dataset.targets, binary_labels
             )
-        self.x_train, self.y_train = self.train_dataset.data, self.train_dataset.targets
-        self.x_test, self.y_test = self.test_dataset.data, self.test_dataset.targets
-        self.x_train = standardize(self.x_train, 0.1307, 0.3081).view(-1, 784)
-        self.x_test = standardize(self.x_test, 0.1307, 0.3081).view(-1, 784)
-        self.x_train_id = torch.arange(self.x_train.shape[0])
-        self.x_test_id = torch.arange(self.x_test.shape[0])
-
-
-class BinaryFashionMNISTDataModule(BaseDataModule):
-    """A binary version of Fashion-MNIST dataset that only contains 0 and 6."""
-
-    def __init__(self, cfg):
-        super().__init__(cfg)
-        self.cfg = cfg
-        self.labels = torch.tensor([0, 6])
-        self.transform = transforms.Compose(
-            [
-                transforms.ToTensor(),
-                transforms.Normalize((0.2860,), (0.3530,)),
-            ]
-        )
-
-    def prepare_data(self):
-        # download data
-        datasets.FashionMNIST("/tmp/data", train=True, download=True)
-        datasets.FashionMNIST("/tmp/data", train=False, download=True)
-
-    def setup(self, stage=None):
-        # load data
-        self.train_dataset = datasets.FashionMNIST(
-            "/tmp/data", train=True, transform=self.transform
-        )
-        self.test_dataset = datasets.FashionMNIST(
-            "/tmp/data", train=False, transform=self.transform
-        )
-        self.train_dataset.data, self.train_dataset.targets = make_binary(
-            self.train_dataset.data, self.train_dataset.targets, self.labels
-        )
-        self.test_dataset.data, self.test_dataset.targets = make_binary(
-            self.test_dataset.data, self.test_dataset.targets, self.labels
-        )
         if self.cfg.label_noise > 0:
+            num_labels = 2 if self.cfg.binary_label else 10
             self.train_dataset.targets = add_label_noise(
-                self.train_dataset.targets, self.cfg.label_noise, 2
+                self.train_dataset.targets, self.cfg.label_noise, num_labels
             )
         self.x_train, self.y_train = self.train_dataset.data, self.train_dataset.targets
         self.x_test, self.y_test = self.test_dataset.data, self.test_dataset.targets
