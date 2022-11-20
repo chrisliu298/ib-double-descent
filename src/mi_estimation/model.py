@@ -98,7 +98,12 @@ class BaseModel(LightningModule):
         loss = torch.stack([i["val_loss"] for i in outputs]).double().mean()
         acc = torch.stack([i["val_acc"] for i in outputs]).double().mean()
         self.log_dict({"avg_val_acc": acc, "avg_val_loss": loss}, logger=True)
-        if log_now(self.current_epoch) and self.logged_in_train:
+        should_log_now = (
+            log_now(self.current_epoch)
+            or self.current_epoch == (self.cfg.max_epochs - 1)
+            and self.logged_in_train
+        )
+        if should_log_now:
             self.epoch_results["test_acc"] = acc.item()
             self.epoch_results["test_loss"] = loss.item()
             self.results.append(self.epoch_results)
