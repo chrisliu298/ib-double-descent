@@ -21,7 +21,6 @@ def parse_args():
         required=True,
         choices=["szt_g1", "szt_g2", "szt_var_u", "mnist", "fashionmnist"],
     )
-    parser.add_argument("--train_size", type=int)
     parser.add_argument("--label_noise", type=float, default=0.0)
     parser.add_argument("--binary_label", action="store_true")
     parser.add_argument("--image_size", type=int)

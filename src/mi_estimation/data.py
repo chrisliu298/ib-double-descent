@@ -6,13 +6,7 @@ from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader, TensorDataset
 from torchvision import datasets, transforms
 
-from utils import (
-    add_label_noise,
-    make_binary,
-    sample_data,
-    standardize,
-    train_test_split,
-)
+from utils import add_label_noise, make_binary, train_test_split
 
 
 class BaseDataModule(LightningDataModule):
@@ -108,13 +102,13 @@ class MNISTDataModule(BaseDataModule):
         self.test_dataset = datasets.MNIST(
             "/tmp/data", train=False, transform=self.x_transforms
         )
-        if (
-            self.cfg.train_size is not None
-            and len(self.train_dataset) < self.cfg.train_size
-        ):
-            self.train_dataset.data, self.train_dataset.targets = sample_data(
-                self.train_dataset.data, self.train_dataset.targets, self.cfg.train_size
-            )
+        # if (
+        #     self.cfg.train_size is not None
+        #     and len(self.train_dataset) < self.cfg.train_size
+        # ):
+        #     self.train_dataset.data, self.train_dataset.targets = sample_data(
+        #         self.train_dataset.data, self.train_dataset.targets, self.cfg.train_size
+        #     )
         if self.cfg.binary_label:
             binary_labels = torch.tensor([0, 6])
             self.train_dataset.data, self.train_dataset.targets = make_binary(
@@ -128,10 +122,10 @@ class MNISTDataModule(BaseDataModule):
             self.train_dataset.targets = add_label_noise(
                 self.train_dataset.targets, self.cfg.label_noise, num_labels
             )
-        self.x_train, self.y_train = self.train_dataset.data, self.train_dataset.targets
-        self.x_test, self.y_test = self.test_dataset.data, self.test_dataset.targets
-        self.x_train = standardize(self.x_train, 0.1307, 0.3081).view(-1, 784)
-        self.x_test = standardize(self.x_test, 0.1307, 0.3081).view(-1, 784)
+        self.x_train = torch.cat([x[0] for x in self.train_dataset])
+        self.x_test = torch.cat([x[0] for x in self.test_dataset])
+        self.y_train = self.train_dataset.targets
+        self.y_test = self.test_dataset.targets
         self.x_train_id = torch.arange(self.x_train.shape[0])
         self.x_test_id = torch.arange(self.x_test.shape[0])
 
@@ -161,13 +155,13 @@ class FashionMNISTDataModule(BaseDataModule):
         self.test_dataset = datasets.FashionMNIST(
             "/tmp/data", train=False, transform=self.x_transforms
         )
-        if (
-            self.cfg.train_size is not None
-            and len(self.train_dataset) < self.cfg.train_size
-        ):
-            self.train_dataset.data, self.train_dataset.targets = sample_data(
-                self.train_dataset.data, self.train_dataset.targets, self.cfg.train_size
-            )
+        # if (
+        #     self.cfg.train_size is not None
+        #     and len(self.train_dataset) < self.cfg.train_size
+        # ):
+        #     self.train_dataset.data, self.train_dataset.targets = sample_data(
+        #         self.train_dataset.data, self.train_dataset.targets, self.cfg.train_size
+        #     )
         if self.cfg.binary_label:
             binary_labels = torch.tensor([0, 6])
             self.train_dataset.data, self.train_dataset.targets = make_binary(
@@ -181,9 +175,9 @@ class FashionMNISTDataModule(BaseDataModule):
             self.train_dataset.targets = add_label_noise(
                 self.train_dataset.targets, self.cfg.label_noise, num_labels
             )
-        self.x_train, self.y_train = self.train_dataset.data, self.train_dataset.targets
-        self.x_test, self.y_test = self.test_dataset.data, self.test_dataset.targets
-        self.x_train = standardize(self.x_train, 0.2860, 0.3530).view(-1, 784)
-        self.x_test = standardize(self.x_test, 0.2860, 0.3530).view(-1, 784)
+        self.x_train = torch.cat([x[0] for x in self.train_dataset])
+        self.x_test = torch.cat([x[0] for x in self.test_dataset])
+        self.y_train = self.train_dataset.targets
+        self.y_test = self.test_dataset.targets
         self.x_train_id = torch.arange(self.x_train.shape[0])
         self.x_test_id = torch.arange(self.x_test.shape[0])

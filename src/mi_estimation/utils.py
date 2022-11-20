@@ -160,6 +160,7 @@ def standardize(x, mean, std):
 
 
 def add_label_noise(labels, label_noise, num_classes):
+    """Add i.i.d. label noise to a tensor of labels."""
     labels = np.array(labels)
     # indices for noisy labels
     mask = np.random.rand(len(labels)) < label_noise
