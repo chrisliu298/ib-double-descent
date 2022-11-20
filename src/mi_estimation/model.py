@@ -30,6 +30,9 @@ class BaseModel(LightningModule):
         self.results = []
         self.logged_in_train = False
 
+    def on_train_start(self):
+        self.log("total_params", sum(p.numel() for p in self.parameters()), logger=True)
+
     def evaluate(self, batch, stage=None):
         """Evaluate the model on a batch. This is used for training, validation
         and testing."""
