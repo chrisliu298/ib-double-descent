@@ -193,7 +193,7 @@ class BaseModel(LightningModule):
 
 
 class FCN(BaseModel):
-    """Fully connected neural network."""
+    """A fully connected neural network."""
 
     def __init__(self, cfg):
         super().__init__(cfg)
