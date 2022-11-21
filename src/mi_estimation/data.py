@@ -212,10 +212,9 @@ class CIFAR10DataModule(BaseDataModule):
             x_transforms.append(transforms.Resize(cfg.image_size))
         x_transforms.extend(
             [
+                transforms.Grayscale(),
                 transforms.ToTensor(),
-                transforms.Normalize(
-                    (0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)
-                ),
+                transforms.Normalize((0.4734,), (0.2516,)),
             ]
         )
         self.x_transforms = transforms.Compose(x_transforms)
@@ -280,10 +279,9 @@ class CIFAR100DataModule(BaseDataModule):
             x_transforms.append(transforms.Resize(cfg.image_size))
         x_transforms.extend(
             [
+                transforms.Grayscale(),
                 transforms.ToTensor(),
-                transforms.Normalize(
-                    (0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761)
-                ),
+                transforms.Normalize((0.4782,), (0.2682,)),
             ]
         )
         self.x_transforms = transforms.Compose(x_transforms)
