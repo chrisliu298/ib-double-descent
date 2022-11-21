@@ -1,5 +1,5 @@
 from collections import Counter
-from math import log2
+from math import log2, sqrt
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -196,4 +196,4 @@ def lr_schedule(lr_schedule_type):
     elif lr_schedule_type == "inverse":
         return lambda t: 1 / (0.05 * t + 1)
     elif lr_schedule_type == "inverse_sqrt":
-        return lambda t: 1 / (t + 1) ** 0.5
+        return lambda t: 1 / sqrt(1 + t)
