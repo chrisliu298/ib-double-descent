@@ -119,13 +119,6 @@ class MNISTDataModule(BaseDataModule):
             transform=self.x_transforms,
             target_transform=self.y_transforms,
         )
-        # if (
-        #     self.cfg.train_size is not None
-        #     and len(self.train_dataset) < self.cfg.train_size
-        # ):
-        #     self.train_dataset.data, self.train_dataset.targets = sample_data(
-        #         self.train_dataset.data, self.train_dataset.targets, self.cfg.train_size
-        #     )
         if self.cfg.binary_label:
             binary_labels = torch.tensor([0, 6])
             self.train_dataset.data, self.train_dataset.targets = make_binary(
@@ -189,13 +182,142 @@ class FashionMNISTDataModule(BaseDataModule):
             transform=self.x_transforms,
             target_transform=self.y_transforms,
         )
-        # if (
-        #     self.cfg.train_size is not None
-        #     and len(self.train_dataset) < self.cfg.train_size
-        # ):
-        #     self.train_dataset.data, self.train_dataset.targets = sample_data(
-        #         self.train_dataset.data, self.train_dataset.targets, self.cfg.train_size
-        #     )
+        if self.cfg.binary_label:
+            binary_labels = torch.tensor([0, 6])
+            self.train_dataset.data, self.train_dataset.targets = make_binary(
+                self.train_dataset.data, self.train_dataset.targets, binary_labels
+            )
+            self.test_dataset.data, self.test_dataset.targets = make_binary(
+                self.test_dataset.data, self.test_dataset.targets, binary_labels
+            )
+        if self.cfg.label_noise > 0:
+            num_labels = 2 if self.cfg.binary_label else 10
+            self.train_dataset.targets = add_label_noise(
+                self.train_dataset.targets, self.cfg.label_noise, num_labels
+            )
+        self.x_train = torch.cat([x[0] for x in self.train_dataset])
+        self.x_test = torch.cat([x[0] for x in self.test_dataset])
+        self.y_train = torch.stack([torch.tensor(x[1]) for x in self.train_dataset])
+        self.y_test = torch.stack([torch.tensor(x[1]) for x in self.test_dataset])
+        self.x_train_id = torch.arange(self.x_train.shape[0])
+        self.x_test_id = torch.arange(self.x_test.shape[0])
+
+
+class CIFAR10DataModule(BaseDataModule):
+    def __init__(self, cfg):
+        super().__init__(cfg)
+        self.cfg = cfg
+        x_transforms = []
+        if cfg.image_size is not None:
+            x_transforms.append(transforms.Resize(cfg.image_size))
+        x_transforms.extend(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    (0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)
+                ),
+            ]
+        )
+        self.x_transforms = transforms.Compose(x_transforms)
+        y_transforms = None
+        if cfg.loss == "mse":
+            num_classes = int(self.cfg.layer_shapes.split("x")[-1])
+            y_transforms = transforms.Compose(
+                [
+                    lambda y: torch.tensor(y),
+                    lambda y: torch.nn.functional.one_hot(y, num_classes),
+                    lambda y: y.float(),
+                ]
+            )
+        self.y_transforms = y_transforms
+
+    def prepare_data(self):
+        # download data
+        datasets.CIFAR10("/tmp/data", train=True, download=True)
+        datasets.CIFAR10("/tmp/data", train=False, download=True)
+
+    def setup(self, stage=None):
+        # load data
+        self.train_dataset = datasets.CIFAR10(
+            "/tmp/data",
+            train=True,
+            transform=self.x_transforms,
+            target_transform=self.y_transforms,
+        )
+        self.test_dataset = datasets.CIFAR10(
+            "/tmp/data",
+            train=False,
+            transform=self.x_transforms,
+            target_transform=self.y_transforms,
+        )
+        if self.cfg.binary_label:
+            binary_labels = torch.tensor([0, 6])
+            self.train_dataset.data, self.train_dataset.targets = make_binary(
+                self.train_dataset.data, self.train_dataset.targets, binary_labels
+            )
+            self.test_dataset.data, self.test_dataset.targets = make_binary(
+                self.test_dataset.data, self.test_dataset.targets, binary_labels
+            )
+        if self.cfg.label_noise > 0:
+            num_labels = 2 if self.cfg.binary_label else 10
+            self.train_dataset.targets = add_label_noise(
+                self.train_dataset.targets, self.cfg.label_noise, num_labels
+            )
+        self.x_train = torch.cat([x[0] for x in self.train_dataset])
+        self.x_test = torch.cat([x[0] for x in self.test_dataset])
+        self.y_train = torch.stack([torch.tensor(x[1]) for x in self.train_dataset])
+        self.y_test = torch.stack([torch.tensor(x[1]) for x in self.test_dataset])
+        self.x_train_id = torch.arange(self.x_train.shape[0])
+        self.x_test_id = torch.arange(self.x_test.shape[0])
+
+
+class CIFAR100DataModule(BaseDataModule):
+    def __init__(self, cfg):
+        super().__init__(cfg)
+        self.cfg = cfg
+        x_transforms = []
+        if cfg.image_size is not None:
+            x_transforms.append(transforms.Resize(cfg.image_size))
+        x_transforms.extend(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    (0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761)
+                ),
+            ]
+        )
+        self.x_transforms = transforms.Compose(x_transforms)
+        y_transforms = None
+        if cfg.loss == "mse":
+            num_classes = int(self.cfg.layer_shapes.split("x")[-1])
+            y_transforms = transforms.Compose(
+                [
+                    lambda y: torch.tensor(y),
+                    lambda y: torch.nn.functional.one_hot(y, num_classes),
+                    lambda y: y.float(),
+                ]
+            )
+        self.y_transforms = y_transforms
+
+    def prepare_data(self):
+        # download data
+        datasets.CIFAR100("/tmp/data", train=True, download=True)
+        datasets.CIFAR100("/tmp/data", train=False, download=True)
+
+    def setup(self, stage=None):
+        # load data
+        self.train_dataset = datasets.CIFAR100(
+            "/tmp/data",
+            train=True,
+            transform=self.x_transforms,
+            target_transform=self.y_transforms,
+        )
+        self.test_dataset = datasets.CIFAR100(
+            "/tmp/data",
+            train=False,
+            transform=self.x_transforms,
+            target_transform=self.y_transforms,
+        )
         if self.cfg.binary_label:
             binary_labels = torch.tensor([0, 6])
             self.train_dataset.data, self.train_dataset.targets = make_binary(
