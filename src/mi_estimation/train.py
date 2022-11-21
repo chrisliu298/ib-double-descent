@@ -14,7 +14,7 @@ from data import (
     MNISTDataModule,
     SZTDataModule,
 )
-from model import FCN
+from model import FCN, CNN
 
 
 def parse_args():
@@ -39,6 +39,7 @@ def parse_args():
     parser.add_argument("--binary_label", action="store_true")
     parser.add_argument("--image_size", type=int)
     # Model
+    parser.add_argument("--arch", type=str, required=True, choices=["fcn", "cnn"])
     parser.add_argument("--layer_shapes", type=str, default="12x10x7x5x4x3x2")
     parser.add_argument(
         "--activation", type=str, default="tanh", choices=["relu", "tanh"]
@@ -94,7 +95,10 @@ def main():
     elif cfg.dataset == "cifar100":
         datamodule = CIFAR100DataModule(cfg)
     # Initialize model
-    model = FCN(cfg)
+    if cfg.arch == "fcn":
+        model = FCN(cfg)
+    elif cfg.arch == "cnn":
+        model = CNN(cfg)
     # Setup trainer
     callbacks = [
         LearningRateMonitor(logging_interval="step"),
