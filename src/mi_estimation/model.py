@@ -30,6 +30,7 @@ class BaseModel(LightningModule):
         self.epoch_results = {}
         self.results = []
         self.logged_in_train = False
+        self.should_log_now = False
 
     def on_train_start(self):
         self.total_params = sum(p.numel() for p in self.parameters())
@@ -66,11 +67,13 @@ class BaseModel(LightningModule):
         acc = torch.stack([i["train_acc"] for i in outputs]).double().mean()
         self.log_dict({"avg_train_acc": acc, "avg_train_loss": loss}, logger=True)
         # Aggregate results
-        should_log_now = log_now(self.current_epoch) or self.current_epoch == (
+        should_log_now = log_now(self.current_epoch)
+        should_log_now = should_log_now or self.current_epoch == (
             self.cfg.max_epochs - 1
         )
+        self.should_log_now = should_log_now
         # Log weight stats
-        if should_log_now:
+        if self.should_log_now:
             self.logged_in_train = True
             self.epoch_results = {"epoch": self.current_epoch}
             if self.cfg.log_weight_stats:
@@ -84,6 +87,7 @@ class BaseModel(LightningModule):
             if self.cfg.log_mi:
                 layer_mi_at_epoch = self.estimate_mi()
                 self.epoch_results.update(layer_mi_at_epoch)
+            self.epoch_results["total_params"] = self.total_params
             self.epoch_results["train_acc"] = acc.item()
             self.epoch_results["train_loss"] = loss.item()
 
@@ -95,12 +99,7 @@ class BaseModel(LightningModule):
         loss = torch.stack([i["val_loss"] for i in outputs]).double().mean()
         acc = torch.stack([i["val_acc"] for i in outputs]).double().mean()
         self.log_dict({"avg_val_acc": acc, "avg_val_loss": loss}, logger=True)
-        should_log_now = (
-            log_now(self.current_epoch)
-            or self.current_epoch == (self.cfg.max_epochs - 1)
-            and self.logged_in_train
-        )
-        if should_log_now:
+        if self.should_log_now:
             self.epoch_results["test_acc"] = acc.item()
             self.epoch_results["test_loss"] = loss.item()
             self.results.append(self.epoch_results)
