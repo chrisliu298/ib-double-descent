@@ -167,6 +167,8 @@ class BaseModel(LightningModule):
         x_test = self.trainer.datamodule.x_test
         y_test = self.trainer.datamodule.y_test
         x_test_id = self.trainer.datamodule.x_test_id
+        x_train = x_train.unsqueeze(1)
+        x_test = x_test.unsqueeze(1)
         if y_train.dim() == 2:
             y_train = y_train.argmax(dim=1)
         if y_test.dim() == 2:
