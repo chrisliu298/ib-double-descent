@@ -8,11 +8,11 @@ from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 
 from data import (
+    CIFAR10DataModule,
+    CIFAR100DataModule,
     FashionMNISTDataModule,
     MNISTDataModule,
     SZTDataModule,
-    CIFAR100DataModule,
-    CIFAR10DataModule,
 )
 from model import FCN
 
@@ -89,6 +89,10 @@ def main():
         datamodule = MNISTDataModule(cfg)
     elif cfg.dataset == "fashionmnist":
         datamodule = FashionMNISTDataModule(cfg)
+    elif cfg.dataset == "cifar10":
+        datamodule = CIFAR10DataModule(cfg)
+    elif cfg.dataset == "cifar100":
+        datamodule = CIFAR100DataModule(cfg)
     # Initialize model
     model = FCN(cfg)
     # Setup trainer
