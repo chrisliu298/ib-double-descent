@@ -7,7 +7,13 @@ from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 
-from data import FashionMNISTDataModule, MNISTDataModule, SZTDataModule
+from data import (
+    FashionMNISTDataModule,
+    MNISTDataModule,
+    SZTDataModule,
+    CIFAR100DataModule,
+    CIFAR10DataModule,
+)
 from model import FCN
 
 
@@ -19,7 +25,15 @@ def parse_args():
         "--dataset",
         type=str,
         required=True,
-        choices=["szt_g1", "szt_g2", "szt_var_u", "mnist", "fashionmnist"],
+        choices=[
+            "szt_g1",
+            "szt_g2",
+            "szt_var_u",
+            "mnist",
+            "fashionmnist",
+            "cifar10",
+            "cifar100",
+        ],
     )
     parser.add_argument("--label_noise", type=float, default=0.0)
     parser.add_argument("--binary_label", action="store_true")
