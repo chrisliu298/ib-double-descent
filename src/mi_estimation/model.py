@@ -115,9 +115,11 @@ class BaseModel(LightningModule):
             title = (
                 self.cfg.dataset
                 + "_"
-                + self.cfg.activation
+                + self.cfg.arch
                 + "_"
                 + self.cfg.layer_dims
+                + "_"
+                + self.cfg.activation
                 + "_"
                 + self.cfg.optimizer
                 + "_"
