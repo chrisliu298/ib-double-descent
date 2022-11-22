@@ -66,10 +66,8 @@ class BaseModel(LightningModule):
         acc = torch.stack([i["train_acc"] for i in outputs]).double().mean()
         self.log_dict({"avg_train_acc": acc, "avg_train_loss": loss}, logger=True)
         # Aggregate results
-        should_log_now = log_now(self.current_epoch)
-        should_log_now = should_log_now or (
-            self.current_epoch == (self.cfg.max_epochs - 1)
-        )
+        should_log_now = log_now(self.current_epoch + 1)
+        should_log_now = should_log_now or self.current_epoch == self.cfg.max_epochs - 1
         self.should_log_now = should_log_now
         # Log weight stats
         if self.should_log_now:
