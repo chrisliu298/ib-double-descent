@@ -134,12 +134,8 @@ class MNISTDataModule(BaseDataModule):
             )
         self.x_train = torch.cat([x[0] for x in self.train_dataset])
         self.x_test = torch.cat([x[0] for x in self.test_dataset])
-        self.y_train = torch.stack(
-            [torch.tensor(x[1].item()) for x in self.train_dataset]
-        )
-        self.y_test = torch.stack(
-            [torch.tensor(x[1].item()) for x in self.test_dataset]
-        )
+        self.y_train = torch.stack([torch.tensor(x[1]) for x in self.train_dataset])
+        self.y_test = torch.stack([torch.tensor(x[1]) for x in self.test_dataset])
         self.x_train_id = torch.arange(self.x_train.shape[0])
         self.x_test_id = torch.arange(self.x_test.shape[0])
 
@@ -201,12 +197,8 @@ class FashionMNISTDataModule(BaseDataModule):
             )
         self.x_train = torch.cat([x[0] for x in self.train_dataset])
         self.x_test = torch.cat([x[0] for x in self.test_dataset])
-        self.y_train = torch.stack(
-            [torch.tensor(x[1].item()) for x in self.train_dataset]
-        )
-        self.y_test = torch.stack(
-            [torch.tensor(x[1].item()) for x in self.test_dataset]
-        )
+        self.y_train = torch.stack([torch.tensor(x[1]) for x in self.train_dataset])
+        self.y_test = torch.stack([torch.tensor(x[1]) for x in self.test_dataset])
         self.x_train_id = torch.arange(self.x_train.shape[0])
         self.x_test_id = torch.arange(self.x_test.shape[0])
 
