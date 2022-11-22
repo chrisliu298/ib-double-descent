@@ -29,7 +29,6 @@ class BaseModel(LightningModule):
         self.grad_stats_per_step = []
         self.epoch_results = {}
         self.results = []
-        self.logged_in_train = False
         self.should_log_now = False
 
     def on_train_start(self):
@@ -74,7 +73,6 @@ class BaseModel(LightningModule):
         self.should_log_now = should_log_now
         # Log weight stats
         if self.should_log_now:
-            self.logged_in_train = True
             self.epoch_results = {"epoch": self.current_epoch}
             if self.cfg.log_weight_stats:
                 weight_stats_at_epoch = weight_stats(self)
@@ -103,7 +101,6 @@ class BaseModel(LightningModule):
             self.epoch_results["test_acc"] = acc.item()
             self.epoch_results["test_loss"] = loss.item()
             self.results.append(self.epoch_results)
-            self.logged_in_train = False
 
     def test_step(self, batch, batch_idx):
         loss, acc = self.evaluate(batch, "test")
