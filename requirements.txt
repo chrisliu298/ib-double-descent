@@ -1,0 +1,7 @@
+pytorch-lightning
+torchinfo
+wandb
+easydict
+scipy
+matplotlib
+pandas
