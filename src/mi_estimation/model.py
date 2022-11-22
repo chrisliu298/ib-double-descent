@@ -204,11 +204,11 @@ class RFN(BaseModel):
         in_features, hidden_features, out_features = layer_dims
         # Define layers
         self.layer0 = nn.Linear(in_features, hidden_features)
-        nn.init.normal_(self.layer0.weight, mean=0, std=sqrt(1 / hidden_features))
-        nn.init.zeros_(self.layer0.bias)
+        # nn.init.normal_(self.layer0.weight, mean=0, std=sqrt(1 / hidden_features))
+        # nn.init.zeros_(self.layer0.bias)
         self.layer1 = nn.Linear(hidden_features, out_features)
-        nn.init.normal_(self.layer1.weight, mean=0, std=sqrt(1 / out_features))
-        nn.init.zeros_(self.layer1.bias)
+        # nn.init.normal_(self.layer1.weight, mean=0, std=sqrt(1 / out_features))
+        # nn.init.zeros_(self.layer1.bias)
         # Freeze first layer
         self.layer0.weight.requires_grad = False
         self.layer0.bias.requires_grad = False
@@ -239,14 +239,14 @@ class FCN(BaseModel):
         # Input layer and hidden layers
         for i in range(1, len(layer_dims) - 1):
             layer = nn.Linear(layer_dims[i - 1], layer_dims[i])
-            nn.init.trunc_normal_(layer.weight, mean=0, std=sqrt(1 / layer_dims[i]))
-            nn.init.zeros_(layer.bias)
+            # nn.init.trunc_normal_(layer.weight, mean=0, std=sqrt(1 / layer_dims[i]))
+            # nn.init.zeros_(layer.bias)
             self._layers.append(layer)
             self.add_module(f"layer{i}", layer)
         # Last layer
         layer = nn.Linear(layer_dims[-2], layer_dims[-1])
-        nn.init.trunc_normal_(layer.weight, mean=0, std=sqrt(1 / layer_dims[-1]))
-        nn.init.zeros_(layer.bias)
+        # nn.init.trunc_normal_(layer.weight, mean=0, std=sqrt(1 / layer_dims[-1]))
+        # nn.init.zeros_(layer.bias)
         self._layers.append(layer)
         self.add_module(f"layer{len(layer_dims) - 1}", layer)
         # Choose activation function
@@ -278,18 +278,18 @@ class CNN(BaseModel):
             layer = nn.Conv2d(
                 layer_dims[i - 1], layer_dims[i], kernel_size=3, padding=1
             )
-            nn.init.trunc_normal_(
-                layer.weight, mean=0, std=sqrt(1 / (layer_dims[i] * 3 * 3))
-            )
-            nn.init.zeros_(layer.bias)
+            # nn.init.trunc_normal_(
+            #     layer.weight, mean=0, std=sqrt(1 / (layer_dims[i] * 3 * 3))
+            # )
+            # nn.init.zeros_(layer.bias)
             self._layers.append(layer)
             self.add_module(f"conv{i}", layer)
         # Last layer
         layer = nn.Conv2d(layer_dims[-2], layer_dims[-1], kernel_size=3, padding=1)
-        nn.init.trunc_normal_(
-            layer.weight, mean=0, std=sqrt(1 / (layer_dims[-1] * 3 * 3))
-        )
-        nn.init.zeros_(layer.bias)
+        # nn.init.trunc_normal_(
+        #     layer.weight, mean=0, std=sqrt(1 / (layer_dims[-1] * 3 * 3))
+        # )
+        # nn.init.zeros_(layer.bias)
         self._layers.append(layer)
         self.add_module(f"conv{len(layer_dims) - 1}", layer)
         # Choose activation function
