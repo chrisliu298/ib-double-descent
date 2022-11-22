@@ -224,7 +224,7 @@ class RFN(BaseModel):
         Ts.append(x.clone().detach())
         x = self.layer1(x)
         Ts.append(self.activation(x).clone().detach())
-        return x
+        return x, Ts
 
 
 class FCN(BaseModel):
