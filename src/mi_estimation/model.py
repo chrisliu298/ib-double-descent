@@ -209,9 +209,11 @@ class FCN(BaseModel):
             self._layers.append(layer)
             self.add_module(f"layer{i}", layer)
         # Last layer
-        self.fc = nn.Linear(layer_shapes[-2], layer_shapes[-1])
-        nn.init.trunc_normal_(self.fc.weight, mean=0, std=sqrt(1 / layer_shapes[-1]))
-        nn.init.zeros_(self.fc.bias)
+        layer = nn.Linear(layer_shapes[-2], layer_shapes[-1])
+        nn.init.trunc_normal_(layer.weight, mean=0, std=sqrt(1 / layer_shapes[-1]))
+        nn.init.zeros_(layer.bias)
+        self._layers.append(layer)
+        self.add_module(f"layer{len(layer_shapes) - 1}", layer)
         # Choose activation function
         if cfg.activation == "relu":
             self.activation = torch.relu
@@ -219,14 +221,12 @@ class FCN(BaseModel):
             self.activation = torch.tanh
 
     def forward(self, x):
-        if x.dim() > 2:
-            batch_size = x.shape[0]
-            x = x.view(batch_size, -1)
+        x = x.flatten(1)
         Ts = []  # intermediate outputs for all layers
-        for layer in self._layers:
+        for layer in self._layers[:-1]:
             x = self.activation(layer(x))
             Ts.append(x.clone().detach())
-        x = self.fc(x)
+        x = self._layers[-1](x)
         Ts.append(self.activation(x).clone().detach())
         return x, Ts
 
@@ -250,9 +250,13 @@ class CNN(BaseModel):
             self._layers.append(layer)
             self.add_module(f"conv{i}", layer)
         # Last layer
-        self.fc = nn.Linear(layer_shapes[-2], layer_shapes[-1])
-        nn.init.trunc_normal_(self.fc.weight, mean=0, std=sqrt(1 / layer_shapes[-1]))
-        nn.init.zeros_(self.fc.bias)
+        layer = nn.Conv2d(layer_shapes[-2], layer_shapes[-1], kernel_size=3, padding=1)
+        nn.init.trunc_normal_(
+            layer.weight, mean=0, std=sqrt(1 / (layer_shapes[-1] * 3 * 3))
+        )
+        nn.init.zeros_(layer.bias)
+        self._layers.append(layer)
+        self.add_module(f"conv{len(layer_shapes) - 1}", layer)
         # Choose activation function
         if cfg.activation == "relu":
             self.activation = torch.relu
@@ -261,14 +265,13 @@ class CNN(BaseModel):
 
     def forward(self, x):
         Ts = []  # intermediate outputs for all layers
-        for i, layer in enumerate(self._layers):
+        for i, layer in enumerate(self._layers[:-1]):
             x = self.activation(layer(x))
-            if isinstance(layer, nn.Conv2d):
-                Ts.append(x.clone().detach().flatten(1))
+            Ts.append(x.clone().detach().flatten(1))
             if i > 0:
                 x = F.max_pool2d(x, 2)
         x = F.max_pool2d(x, 4)
-        x = x.view(x.shape[0], -1)
-        x = self.fc(x)
+        x = x.flatten(1)
+        x = self._layers[-1](x)
         Ts.append(self.activation(x).clone().detach().flatten(1))
         return x, Ts
