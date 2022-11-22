@@ -60,7 +60,7 @@ def calculate_layer_mi(x_id, t, y, activation, num_bins=30):
 def plot_mi(df_i, title, num_cols):
     """Plot the mutual information for each layer."""
     mpl.rcParams.update({"font.size": 20})
-    fig, ax1 = plt.subplots(figsize=(17, 8))
+    fig, ax1 = plt.subplots(figsize=(8, 8))
     ax1.set_xlabel(r"$I(X; T)$")
     ax1.set_ylabel(r"$I(T; Y)$")
     # ax1.set_title("Train")
