@@ -90,7 +90,7 @@ class MNISTDataModule(BaseDataModule):
         self.x_transforms = transforms.Compose(x_transforms)
         y_transforms = None
         if cfg.loss == "mse":
-            num_classes = int(self.cfg.layer_shapes.split("x")[-1])
+            num_classes = int(self.cfg.layer_dims.split("x")[-1])
             y_transforms = transforms.Compose(
                 [
                     lambda y: torch.tensor(y),
@@ -157,7 +157,7 @@ class FashionMNISTDataModule(BaseDataModule):
         self.x_transforms = transforms.Compose(x_transforms)
         y_transforms = None
         if cfg.loss == "mse":
-            num_classes = int(self.cfg.layer_shapes.split("x")[-1])
+            num_classes = int(self.cfg.layer_dims.split("x")[-1])
             y_transforms = transforms.Compose(
                 [
                     lambda y: torch.tensor(y),
@@ -228,7 +228,7 @@ class CIFAR10DataModule(BaseDataModule):
         self.x_transforms = transforms.Compose(x_transforms)
         y_transforms = None
         if cfg.loss == "mse":
-            num_classes = int(self.cfg.layer_shapes.split("x")[-1])
+            num_classes = int(self.cfg.layer_dims.split("x")[-1])
             y_transforms = transforms.Compose(
                 [
                     lambda y: torch.tensor(y),
@@ -295,7 +295,7 @@ class CIFAR100DataModule(BaseDataModule):
         self.x_transforms = transforms.Compose(x_transforms)
         y_transforms = None
         if cfg.loss == "mse":
-            num_classes = int(self.cfg.layer_shapes.split("x")[-1])
+            num_classes = int(self.cfg.layer_dims.split("x")[-1])
             y_transforms = transforms.Compose(
                 [
                     lambda y: torch.tensor(y),

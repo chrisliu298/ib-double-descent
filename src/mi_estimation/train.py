@@ -40,7 +40,7 @@ def parse_args():
     parser.add_argument("--image_size", type=int)
     # Model
     parser.add_argument("--arch", type=str, required=True, choices=["fcn", "cnn"])
-    parser.add_argument("--layer_shapes", type=str, default="12x10x7x5x4x3x2")
+    parser.add_argument("--layer_dims", type=str, default="12x10x7x5x4x3x2")
     parser.add_argument(
         "--activation", type=str, default="tanh", choices=["relu", "tanh"]
     )

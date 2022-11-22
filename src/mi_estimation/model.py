@@ -122,7 +122,7 @@ class BaseModel(LightningModule):
                 + "_"
                 + self.cfg.activation
                 + "_"
-                + self.cfg.layer_shapes
+                + self.cfg.layer_dims
                 + "_"
                 + self.cfg.optimizer
                 + "_"
@@ -133,7 +133,7 @@ class BaseModel(LightningModule):
             results = pd.DataFrame(self.results)
             results.to_csv(f"{title}.csv", index=False)
             # Plot mutual information
-            plot_mi(results, title, self.cfg.layer_shapes.count("x"))
+            plot_mi(results, title, self.cfg.layer_dims.count("x"))
             # Save csv and plot to wandb
             wandb.save(f"{title}.csv")
             wandb.save(f"{title}.png")
@@ -199,21 +199,21 @@ class FCN(BaseModel):
 
     def __init__(self, cfg):
         super().__init__(cfg)
-        layer_shapes = [int(x) for x in cfg.layer_shapes.split("x")]
+        layer_dims = [int(x) for x in cfg.layer_dims.split("x")]
         self._layers = []
         # Input layer and hidden layers
-        for i in range(1, len(layer_shapes) - 1):
-            layer = nn.Linear(layer_shapes[i - 1], layer_shapes[i])
-            nn.init.trunc_normal_(layer.weight, mean=0, std=sqrt(1 / layer_shapes[i]))
+        for i in range(1, len(layer_dims) - 1):
+            layer = nn.Linear(layer_dims[i - 1], layer_dims[i])
+            nn.init.trunc_normal_(layer.weight, mean=0, std=sqrt(1 / layer_dims[i]))
             nn.init.zeros_(layer.bias)
             self._layers.append(layer)
             self.add_module(f"layer{i}", layer)
         # Last layer
-        layer = nn.Linear(layer_shapes[-2], layer_shapes[-1])
-        nn.init.trunc_normal_(layer.weight, mean=0, std=sqrt(1 / layer_shapes[-1]))
+        layer = nn.Linear(layer_dims[-2], layer_dims[-1])
+        nn.init.trunc_normal_(layer.weight, mean=0, std=sqrt(1 / layer_dims[-1]))
         nn.init.zeros_(layer.bias)
         self._layers.append(layer)
-        self.add_module(f"layer{len(layer_shapes) - 1}", layer)
+        self.add_module(f"layer{len(layer_dims) - 1}", layer)
         # Choose activation function
         if cfg.activation == "relu":
             self.activation = torch.relu
@@ -236,27 +236,27 @@ class CNN(BaseModel):
 
     def __init__(self, cfg):
         super().__init__(cfg)
-        layer_shapes = [int(x) for x in cfg.layer_shapes.split("x")]
+        layer_dims = [int(x) for x in cfg.layer_dims.split("x")]
         self._layers = []
         # Input layer and hidden layers
-        for i in range(1, len(layer_shapes) - 1):
+        for i in range(1, len(layer_dims) - 1):
             layer = nn.Conv2d(
-                layer_shapes[i - 1], layer_shapes[i], kernel_size=3, padding=1
+                layer_dims[i - 1], layer_dims[i], kernel_size=3, padding=1
             )
             nn.init.trunc_normal_(
-                layer.weight, mean=0, std=sqrt(1 / (layer_shapes[i] * 3 * 3))
+                layer.weight, mean=0, std=sqrt(1 / (layer_dims[i] * 3 * 3))
             )
             nn.init.zeros_(layer.bias)
             self._layers.append(layer)
             self.add_module(f"conv{i}", layer)
         # Last layer
-        layer = nn.Conv2d(layer_shapes[-2], layer_shapes[-1], kernel_size=3, padding=1)
+        layer = nn.Conv2d(layer_dims[-2], layer_dims[-1], kernel_size=3, padding=1)
         nn.init.trunc_normal_(
-            layer.weight, mean=0, std=sqrt(1 / (layer_shapes[-1] * 3 * 3))
+            layer.weight, mean=0, std=sqrt(1 / (layer_dims[-1] * 3 * 3))
         )
         nn.init.zeros_(layer.bias)
         self._layers.append(layer)
-        self.add_module(f"conv{len(layer_shapes) - 1}", layer)
+        self.add_module(f"conv{len(layer_dims) - 1}", layer)
         # Choose activation function
         if cfg.activation == "relu":
             self.activation = torch.relu
