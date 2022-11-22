@@ -204,10 +204,10 @@ class RFN(BaseModel):
         in_features, hidden_features, out_features = layer_dims
         # Define layers
         self.layer0 = nn.Linear(in_features, hidden_features)
-        nn.init.trunc_normal_(self.layer0.weight, mean=0, std=sqrt(1 / hidden_features))
+        nn.init.normal_(self.layer0.weight, mean=0, std=sqrt(1 / hidden_features))
         nn.init.zeros_(self.layer0.bias)
         self.layer1 = nn.Linear(hidden_features, out_features)
-        nn.init.trunc_normal_(self.layer1.weight, mean=0, std=sqrt(1 / out_features))
+        nn.init.normal_(self.layer1.weight, mean=0, std=sqrt(1 / out_features))
         nn.init.zeros_(self.layer1.bias)
         # Freeze first layer
         self.layer0.weight.requires_grad = False
