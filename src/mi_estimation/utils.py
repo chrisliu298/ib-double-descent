@@ -106,37 +106,47 @@ def plot_mi(df_i, title, num_cols):
 @torch.no_grad()
 def weight_stats(module):
     """Calculate the mean, standard deviation, and norm of the weights in a model."""
-    stats, weights = {}, []
+    stats = {}
+    means, stds, norms, weights = [], [], [], []
     for pn, p in module.named_parameters():
+        mean = p.data.mean()
+        std = p.data.std()
         norm = p.data.norm(p=2)
-        stats[f"weight_mean_{pn}"] = (p.data.mean() / norm).item()
-        stats[f"weight_std_{pn}"] = (p.data.std() / norm).item()
+        stats[f"weight_mean_{pn}"] = mean.item()
+        stats[f"weight_std_{pn}"] = std.item()
         stats[f"weight_norm_{pn}"] = norm.item()
+        means.append(mean)
+        stds.append(std)
+        norms.append(norm)
         weights.append(p.data.flatten())
     weights = torch.cat(weights)
-    norm_all = weights.norm(p=2)
-    stats["weight_mean_all"] = (weights.mean() / norm_all).item()
-    stats["weight_std_all"] = (weights.std() / norm_all).item()
-    stats["weight_norm_all"] = norm_all.item()
+    stats["weight_mean_all"] = weights.mean().item()
+    stats["weight_std_all"] = weights.std().item()
+    stats["weight_norm_all"] = weights.norm(p=2).item()
     return stats
 
 
 @torch.no_grad()
 def grad_stats(module):
     """Calculate the mean, standard deviation, and norm of the gradients in a model."""
-    stats, grads = {}, []
+    stats = {}
+    means, stds, norms, grads = [], [], [], []
     for pn, p in module.named_parameters():
         if p.grad is not None:
+            mean = p.grad.data.mean()
+            std = p.grad.data.std()
             norm = p.grad.data.norm(p=2)
-            stats[f"grad_mean_{pn}"] = (p.grad.data.mean() / norm).item()
-            stats[f"grad_std_{pn}"] = (p.grad.data.std() / norm).item()
+            stats[f"grad_mean_{pn}"] = mean.item()
+            stats[f"grad_std_{pn}"] = std.item()
             stats[f"grad_norm_{pn}"] = norm.item()
+            means.append(mean)
+            stds.append(std)
+            norms.append(norm)
             grads.append(p.grad.data.flatten())
     grads = torch.cat(grads)
-    norm_all = grads.norm(p=2)
-    stats["grad_mean_all"] = (grads.mean() / norm_all).item()
-    stats["grad_std_all"] = (grads.std() / norm_all).item()
-    stats["grad_norm_all"] = norm_all.item()
+    stats["grad_mean_all"] = grads.mean().item()
+    stats["grad_std_all"] = grads.std().item()
+    stats["grad_norm_all"] = grads.norm(p=2).item()
     return stats
 
 
