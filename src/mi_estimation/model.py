@@ -67,8 +67,8 @@ class BaseModel(LightningModule):
         self.log_dict({"avg_train_acc": acc, "avg_train_loss": loss}, logger=True)
         # Aggregate results
         should_log_now = log_now(self.current_epoch)
-        should_log_now = should_log_now or self.current_epoch == (
-            self.cfg.max_epochs - 1
+        should_log_now = should_log_now or (
+            self.current_epoch == (self.cfg.max_epochs - 1)
         )
         self.should_log_now = should_log_now
         # Log weight stats
@@ -161,18 +161,18 @@ class BaseModel(LightningModule):
         x_train = self.trainer.datamodule.x_train
         y_train = self.trainer.datamodule.y_train
         x_train_id = self.trainer.datamodule.x_train_id
-        x_test = self.trainer.datamodule.x_test
-        y_test = self.trainer.datamodule.y_test
-        x_test_id = self.trainer.datamodule.x_test_id
+        # x_test = self.trainer.datamodule.x_test
+        # y_test = self.trainer.datamodule.y_test
+        # x_test_id = self.trainer.datamodule.x_test_id
         x_train = x_train.unsqueeze(1)
-        x_test = x_test.unsqueeze(1)
+        # x_test = x_test.unsqueeze(1)
         if y_train.dim() == 2:
             y_train = y_train.argmax(dim=1)
-        if y_test.dim() == 2:
-            y_test = y_test.argmax(dim=1)
+        # if y_test.dim() == 2:
+        #     y_test = y_test.argmax(dim=1)
         with torch.no_grad():
             _, Ts_train = self(x_train.to(self.device))
-            _, Ts_test = self(x_test.to(self.device))
+            # _, Ts_test = self(x_test.to(self.device))
         layer_mi_at_epoch = {}
         for idx, t in enumerate(Ts_train, 1):
             t = t.cpu()
@@ -181,13 +181,13 @@ class BaseModel(LightningModule):
             )
             layer_mi_at_epoch[f"l{idx}_i_xt_tr"] = i_xt
             layer_mi_at_epoch[f"l{idx}_i_ty_tr"] = i_ty
-        for idx, t in enumerate(Ts_test, 1):
-            t = t.cpu()
-            i_xt, i_ty = calculate_layer_mi(
-                x_test_id, t, y_test, self.cfg.activation, self.cfg.num_bins
-            )
-            layer_mi_at_epoch[f"l{idx}_i_xt_te"] = i_xt
-            layer_mi_at_epoch[f"l{idx}_i_ty_te"] = i_ty
+        # for idx, t in enumerate(Ts_test, 1):
+        #     t = t.cpu()
+        #     i_xt, i_ty = calculate_layer_mi(
+        #         x_test_id, t, y_test, self.cfg.activation, self.cfg.num_bins
+        #     )
+        #     layer_mi_at_epoch[f"l{idx}_i_xt_te"] = i_xt
+        #     layer_mi_at_epoch[f"l{idx}_i_ty_te"] = i_ty
         return layer_mi_at_epoch
 
 
