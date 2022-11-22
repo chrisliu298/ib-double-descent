@@ -119,12 +119,6 @@ class MNISTDataModule(BaseDataModule):
             transform=self.x_transforms,
             target_transform=self.y_transforms,
         )
-        if self.cfg.train_size > 0 and self.cfg.train_size < len(self.train_dataset):
-            data, target = sample_data(
-                self.train_dataset.data, self.train_dataset.targets, self.cfg.train_size
-            )
-            self.train_dataset.data = data
-            self.train_dataset.targets = target
         if self.cfg.binary_label:
             binary_labels = torch.tensor([0, 6])
             self.train_dataset.data, self.train_dataset.targets = make_binary(
@@ -133,6 +127,12 @@ class MNISTDataModule(BaseDataModule):
             self.test_dataset.data, self.test_dataset.targets = make_binary(
                 self.test_dataset.data, self.test_dataset.targets, binary_labels
             )
+        if self.cfg.train_size > 0 and self.cfg.train_size < len(self.train_dataset):
+            data, target = sample_data(
+                self.train_dataset.data, self.train_dataset.targets, self.cfg.train_size
+            )
+            self.train_dataset.data = data
+            self.train_dataset.targets = target
         if self.cfg.label_noise > 0:
             num_labels = 2 if self.cfg.binary_label else 10
             self.train_dataset.targets = add_label_noise(
@@ -188,12 +188,6 @@ class FashionMNISTDataModule(BaseDataModule):
             transform=self.x_transforms,
             target_transform=self.y_transforms,
         )
-        if self.cfg.train_size > 0 and self.cfg.train_size < len(self.train_dataset):
-            data, target = sample_data(
-                self.train_dataset.data, self.train_dataset.targets, self.cfg.train_size
-            )
-            self.train_dataset.data = data
-            self.train_dataset.targets = target
         if self.cfg.binary_label:
             binary_labels = torch.tensor([0, 6])
             self.train_dataset.data, self.train_dataset.targets = make_binary(
@@ -202,6 +196,12 @@ class FashionMNISTDataModule(BaseDataModule):
             self.test_dataset.data, self.test_dataset.targets = make_binary(
                 self.test_dataset.data, self.test_dataset.targets, binary_labels
             )
+        if self.cfg.train_size > 0 and self.cfg.train_size < len(self.train_dataset):
+            data, target = sample_data(
+                self.train_dataset.data, self.train_dataset.targets, self.cfg.train_size
+            )
+            self.train_dataset.data = data
+            self.train_dataset.targets = target
         if self.cfg.label_noise > 0:
             num_labels = 2 if self.cfg.binary_label else 10
             self.train_dataset.targets = add_label_noise(
@@ -261,14 +261,6 @@ class CIFAR10DataModule(BaseDataModule):
             transform=self.x_transforms,
             target_transform=self.y_transforms,
         )
-        if self.cfg.train_size > 0 and self.cfg.train_size < len(self.train_dataset):
-            data, target = sample_data(
-                self.train_dataset.data,
-                torch.tensor(self.train_dataset.targets),
-                self.cfg.train_size,
-            )
-            self.train_dataset.data = data
-            self.train_dataset.targets = target
         if self.cfg.binary_label:
             binary_labels = torch.tensor([0, 6])
             self.train_dataset.data, self.train_dataset.targets = make_binary(
@@ -277,6 +269,14 @@ class CIFAR10DataModule(BaseDataModule):
             self.test_dataset.data, self.test_dataset.targets = make_binary(
                 self.test_dataset.data, self.test_dataset.targets, binary_labels
             )
+        if self.cfg.train_size > 0 and self.cfg.train_size < len(self.train_dataset):
+            data, target = sample_data(
+                self.train_dataset.data,
+                torch.tensor(self.train_dataset.targets),
+                self.cfg.train_size,
+            )
+            self.train_dataset.data = data
+            self.train_dataset.targets = target
         if self.cfg.label_noise > 0:
             num_labels = 2 if self.cfg.binary_label else 10
             self.train_dataset.targets = add_label_noise(
@@ -336,14 +336,6 @@ class CIFAR100DataModule(BaseDataModule):
             transform=self.x_transforms,
             target_transform=self.y_transforms,
         )
-        if self.cfg.train_size > 0 and self.cfg.train_size < len(self.train_dataset):
-            data, target = sample_data(
-                self.train_dataset.data,
-                torch.tensor(self.train_dataset.targets),
-                self.cfg.train_size,
-            )
-            self.train_dataset.data = data
-            self.train_dataset.targets = target
         if self.cfg.binary_label:
             binary_labels = torch.tensor([0, 6])
             self.train_dataset.data, self.train_dataset.targets = make_binary(
@@ -352,6 +344,14 @@ class CIFAR100DataModule(BaseDataModule):
             self.test_dataset.data, self.test_dataset.targets = make_binary(
                 self.test_dataset.data, self.test_dataset.targets, binary_labels
             )
+        if self.cfg.train_size > 0 and self.cfg.train_size < len(self.train_dataset):
+            data, target = sample_data(
+                self.train_dataset.data,
+                torch.tensor(self.train_dataset.targets),
+                self.cfg.train_size,
+            )
+            self.train_dataset.data = data
+            self.train_dataset.targets = target
         if self.cfg.label_noise > 0:
             num_labels = 2 if self.cfg.binary_label else 10
             self.train_dataset.targets = add_label_noise(
