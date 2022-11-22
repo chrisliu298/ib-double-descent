@@ -14,7 +14,7 @@ from data import (
     MNISTDataModule,
     SZTDataModule,
 )
-from model import FCN, CNN, RFN
+from model import CNN, FCN, RFN
 
 
 def parse_args():
@@ -35,6 +35,7 @@ def parse_args():
             "cifar100",
         ],
     )
+    parser.add_argument("--train_size", type=int, default=-1)
     parser.add_argument("--label_noise", type=float, default=0.0)
     parser.add_argument("--binary_label", action="store_true")
     parser.add_argument("--image_size", type=int)

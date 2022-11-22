@@ -6,7 +6,7 @@ from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader, TensorDataset
 from torchvision import datasets, transforms
 
-from utils import add_label_noise, make_binary, train_test_split
+from utils import add_label_noise, make_binary, sample_data, train_test_split
 
 
 class BaseDataModule(LightningDataModule):
@@ -119,6 +119,12 @@ class MNISTDataModule(BaseDataModule):
             transform=self.x_transforms,
             target_transform=self.y_transforms,
         )
+        if self.cfg.train_size > 0 and self.cfg.train_size < len(self.train_dataset):
+            data, target = sample_data(
+                self.train_dataset.data, self.train_dataset.targets, self.cfg.train_size
+            )
+            self.train_dataset.data = data
+            self.train_dataset.targets = target
         if self.cfg.binary_label:
             binary_labels = torch.tensor([0, 6])
             self.train_dataset.data, self.train_dataset.targets = make_binary(
@@ -182,6 +188,12 @@ class FashionMNISTDataModule(BaseDataModule):
             transform=self.x_transforms,
             target_transform=self.y_transforms,
         )
+        if self.cfg.train_size > 0 and self.cfg.train_size < len(self.train_dataset):
+            data, target = sample_data(
+                self.train_dataset.data, self.train_dataset.targets, self.cfg.train_size
+            )
+            self.train_dataset.data = data
+            self.train_dataset.targets = target
         if self.cfg.binary_label:
             binary_labels = torch.tensor([0, 6])
             self.train_dataset.data, self.train_dataset.targets = make_binary(
@@ -249,6 +261,14 @@ class CIFAR10DataModule(BaseDataModule):
             transform=self.x_transforms,
             target_transform=self.y_transforms,
         )
+        if self.cfg.train_size > 0 and self.cfg.train_size < len(self.train_dataset):
+            data, target = sample_data(
+                self.train_dataset.data,
+                torch.tensor(self.train_dataset.targets),
+                self.cfg.train_size,
+            )
+            self.train_dataset.data = data
+            self.train_dataset.targets = target
         if self.cfg.binary_label:
             binary_labels = torch.tensor([0, 6])
             self.train_dataset.data, self.train_dataset.targets = make_binary(
@@ -316,6 +336,14 @@ class CIFAR100DataModule(BaseDataModule):
             transform=self.x_transforms,
             target_transform=self.y_transforms,
         )
+        if self.cfg.train_size > 0 and self.cfg.train_size < len(self.train_dataset):
+            data, target = sample_data(
+                self.train_dataset.data,
+                torch.tensor(self.train_dataset.targets),
+                self.cfg.train_size,
+            )
+            self.train_dataset.data = data
+            self.train_dataset.targets = target
         if self.cfg.binary_label:
             binary_labels = torch.tensor([0, 6])
             self.train_dataset.data, self.train_dataset.targets = make_binary(
