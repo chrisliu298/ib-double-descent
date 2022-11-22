@@ -60,15 +60,15 @@ def calculate_layer_mi(x_id, t, y, activation, num_bins=30):
 def plot_mi(df_i, title, num_cols):
     """Plot the mutual information for each layer."""
     mpl.rcParams.update({"font.size": 20})
-    fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(17, 8))
+    fig, ax1 = plt.subplots(ncols=2, figsize=(17, 8))
     ax1.set_xlabel(r"$I(X; T)$")
     ax1.set_ylabel(r"$I(T; Y)$")
-    ax1.set_title("Train")
+    # ax1.set_title("Train")
     # ax1.set_xlim(0, 12.5)
     # ax1.set_ylim(0, 1.05)
-    ax2.set_xlabel(r"$I(X; T)$")
-    ax2.set_ylabel(r"$I(T; Y)$")
-    ax2.set_title("Test")
+    # ax2.set_xlabel(r"$I(X; T)$")
+    # ax2.set_ylabel(r"$I(T; Y)$")
+    # ax2.set_title("Test")
     # ax2.set_xlim(0, 12.5)
     # ax2.set_ylim(0, 1.05)
     for i in range(num_cols):
@@ -80,22 +80,22 @@ def plot_mi(df_i, title, num_cols):
             cmap="viridis",
             norm=mpl.colors.LogNorm(vmin=1, vmax=df_i["epoch"].max()),
         )
-    for i in range(num_cols):
-        mappable2 = ax2.scatter(
-            df_i[f"l{i+1}_i_xt_te"],
-            df_i[f"l{i+1}_i_ty_te"],
-            s=400,
-            c=df_i["epoch"],
-            cmap="viridis",
-            norm=mpl.colors.LogNorm(vmin=1, vmax=df_i["epoch"].max()),
-        )
+    # for i in range(num_cols):
+    #     mappable2 = ax2.scatter(
+    #         df_i[f"l{i+1}_i_xt_te"],
+    #         df_i[f"l{i+1}_i_ty_te"],
+    #         s=400,
+    #         c=df_i["epoch"],
+    #         cmap="viridis",
+    #         norm=mpl.colors.LogNorm(vmin=1, vmax=df_i["epoch"].max()),
+    #     )
     divider = make_axes_locatable(ax1)
-    cax = divider.append_axes("right", size="5%", pad=0.25)
-    divider = make_axes_locatable(ax2)
+    # cax = divider.append_axes("right", size="5%", pad=0.25)
+    # divider = make_axes_locatable(ax2)
     cax = divider.append_axes("right", size="5%", pad=0.25)
     fig.colorbar(mappable1, label="Epochs", cax=cax)
-    fig.delaxes(fig.axes[2])
-    fig.colorbar(mappable2, label="Epochs", cax=cax)
+    # fig.delaxes(fig.axes[2])
+    # fig.colorbar(mappable2, label="Epochs", cax=cax)
     fig.suptitle("_".join(title.split("_")[1:]), fontsize="x-large", y=1.05)
     fig.tight_layout()
     fig.savefig(title + ".pdf", bbox_inches="tight")
