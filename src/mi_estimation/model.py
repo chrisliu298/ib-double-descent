@@ -189,6 +189,44 @@ class BaseModel(LightningModule):
         return layer_mi_at_epoch
 
 
+class RFN(BaseModel):
+    """A random feature network."""
+
+    def __init__(self, cfg):
+        super().__init__(cfg)
+        self.cfg = cfg
+        assert (
+            self.cfg.layer_dims.count("x") == 2
+        ), f"RFN must have 2 hidden layers, got {self.cfg.layer_dims.count('x')}"
+        layer_dims = [int(x) for x in cfg.layer_dims.split("x")]
+        in_features, hidden_features, out_features = layer_dims
+        # Define layers
+        self.layer0 = nn.Linear(in_features, hidden_features)
+        nn.init.trunc_normal_(self.layer0.weight, mean=0, std=sqrt(1 / hidden_features))
+        nn.init.zeros_(self.layer0.bias)
+        self.layer1 = nn.Linear(hidden_features, out_features)
+        nn.init.trunc_normal_(self.layer1.weight, mean=0, std=sqrt(1 / out_features))
+        nn.init.zeros_(self.layer1.bias)
+        # Freeze first layer
+        self.layer0.weight.requires_grad = False
+        self.layer0.bias.requires_grad = False
+        # Choose activation function
+        if cfg.activation == "relu":
+            self.activation = torch.relu
+        elif cfg.activation == "tanh":
+            self.activation = torch.tanh
+
+    def forward(self, x):
+        x = x.flatten(1)
+        Ts = []  # intermediate outputs for all layers
+        x = self.layer0(x)
+        x = self.activation(x)
+        Ts.append(x.clone().detach())
+        x = self.layer1(x)
+        Ts.append(self.activation(x).clone().detach())
+        return x
+
+
 class FCN(BaseModel):
     """A fully connected neural network."""
 

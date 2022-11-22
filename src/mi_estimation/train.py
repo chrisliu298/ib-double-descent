@@ -14,7 +14,7 @@ from data import (
     MNISTDataModule,
     SZTDataModule,
 )
-from model import FCN, CNN
+from model import FCN, CNN, RFN
 
 
 def parse_args():
@@ -39,7 +39,9 @@ def parse_args():
     parser.add_argument("--binary_label", action="store_true")
     parser.add_argument("--image_size", type=int)
     # Model
-    parser.add_argument("--arch", type=str, required=True, choices=["fcn", "cnn"])
+    parser.add_argument(
+        "--arch", type=str, required=True, choices=["rfn", "fcn", "cnn"]
+    )
     parser.add_argument("--layer_dims", type=str, default="12x10x7x5x4x3x2")
     parser.add_argument(
         "--activation", type=str, default="tanh", choices=["relu", "tanh"]
@@ -99,6 +101,8 @@ def main():
         model = FCN(cfg)
     elif cfg.arch == "cnn":
         model = CNN(cfg)
+    elif cfg.arch == "rfn":
+        model = RFN(cfg)
     # Setup trainer
     callbacks = [
         LearningRateMonitor(logging_interval="step"),
