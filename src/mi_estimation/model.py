@@ -219,7 +219,6 @@ class RFN(BaseModel):
         # nn.init.zeros_(self.layer1.bias)
         # Freeze first layer
         self.layer0.weight.requires_grad = False
-        self.layer0.bias.requires_grad = False
         # Choose activation function
         if cfg.activation == "relu":
             self.activation = torch.relu
