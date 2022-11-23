@@ -101,11 +101,11 @@ def plot_mi(df_i, title, num_cols):
     #         cmap="viridis",
     #         norm=mpl.colors.LogNorm(vmin=1, vmax=df_i["epoch"].max()),
     #     )
-    divider = make_axes_locatable(ax1)
+    # divider = make_axes_locatable(ax1)
     # cax = divider.append_axes("right", size="5%", pad=0.25)
     # divider = make_axes_locatable(ax2)
-    cax = divider.append_axes("right", size="5%", pad=0.25)
-    fig.colorbar(mappable1, label="Epochs", cax=cax)
+    # cax = divider.append_axes("right", size="5%", pad=0.25)
+    fig.colorbar(mappable1, label="Epochs")
     # fig.delaxes(fig.axes[2])
     # fig.colorbar(mappable2, label="Epochs", cax=cax)
     fig.tight_layout()
