@@ -30,6 +30,7 @@ class BaseModel(LightningModule):
         self.epoch_results = {}
         self.results = []
         self.should_log_now = False
+        self.history = {}
 
     def on_train_start(self):
         self.trainable_params = sum(
@@ -70,29 +71,27 @@ class BaseModel(LightningModule):
         acc = torch.stack([i["train_acc"] for i in outputs]).double().mean()
         self.log_dict({"avg_train_acc": acc, "avg_train_loss": loss}, logger=True)
         # Aggregate results
-        should_log_now1 = log_now(self.current_epoch + 1)
-        should_log_now2 = should_log_now1 or (
+        should_log_now = log_now(self.current_epoch) or (
             self.current_epoch + 1 == self.cfg.max_epochs
         )
-        self.should_log_now = should_log_now2
-        # Log weight stats
-        if self.should_log_now:
-            self.epoch_results = {"epoch": self.current_epoch + 1}
+        if should_log_now:
+            self.history[self.current_epoch] = {}
             if self.cfg.log_weight_stats:
                 weight_stats_at_epoch = weight_stats(self)
-                self.epoch_results.update(weight_stats_at_epoch)
+                self.history[self.current_epoch].update(weight_stats_at_epoch)
             if self.cfg.log_grad_stats:
                 grad_stats_at_epoch = dict_average(self.grad_stats_per_step)
-                self.epoch_results.update(grad_stats_at_epoch)
+                self.history[self.current_epoch].update(grad_stats_at_epoch)
                 self.grad_stats_per_step = []
             # Estimate mutual information
             if self.cfg.log_mi:
                 layer_mi_at_epoch = self.estimate_mi()
-                self.epoch_results.update(layer_mi_at_epoch)
-            self.epoch_results["total_params"] = self.total_params
-            self.epoch_results["trainable_params"] = self.trainable_params
-            self.epoch_results["train_acc"] = acc.item()
-            self.epoch_results["train_loss"] = loss.item()
+                self.history[self.current_epoch].update(layer_mi_at_epoch)
+            self.history[self.current_epoch]["total_params"] = self.total_params
+            self.history[self.current_epoch]["trainable_params"] = self.trainable_params
+            self.history[self.current_epoch]["train_loss"] = loss.item()
+            self.history[self.current_epoch]["train_acc"] = acc.item()
+            self.history[self.current_epoch]["epoch"] = self.current_epoch + 1
 
     def validation_step(self, batch, batch_idx):
         loss, acc = self.evaluate(batch, stage="val")
@@ -102,10 +101,9 @@ class BaseModel(LightningModule):
         loss = torch.stack([i["val_loss"] for i in outputs]).double().mean()
         acc = torch.stack([i["val_acc"] for i in outputs]).double().mean()
         self.log_dict({"avg_val_acc": acc, "avg_val_loss": loss}, logger=True)
-        if self.should_log_now:
-            self.epoch_results["test_acc"] = acc.item()
-            self.epoch_results["test_loss"] = loss.item()
-            self.results.append(self.epoch_results)
+        if self.current_epoch in self.history:
+            self.history[self.current_epoch]["val_loss"] = loss.item()
+            self.history[self.current_epoch]["val_acc"] = acc.item()
 
     def test_step(self, batch, batch_idx):
         loss, acc = self.evaluate(batch, "test")
@@ -132,7 +130,10 @@ class BaseModel(LightningModule):
             + "_"
             + str(self.trainable_params)
         )
-        results = pd.DataFrame(self.results)
+        results = [v for k, v in self.history.items()]
+        results = sorted(results, key=lambda i: i["epoch"])
+        results = pd.DataFrame(results)
+        results = results.reindex(sorted(results.columns), axis=1)
         results.to_csv(f"{title}.csv", index=False)
         wandb.save(f"{title}.csv")
         # Plot mutual information
