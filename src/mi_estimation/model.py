@@ -32,9 +32,13 @@ class BaseModel(LightningModule):
         self.should_log_now = False
 
     def on_train_start(self):
+        self.trainable_params = sum(
+            p.numel() for p in self.parameters() if p.requires_grad
+        )
         self.total_params = sum(p.numel() for p in self.parameters())
-        self.log("total_params", float(self.total_params), logger=True)
         datamodule = self.trainer.datamodule
+        self.log("total_params", float(self.total_params), logger=True)
+        self.log("trainable_params", float(self.trainable_params), logger=True)
         self.log("train_size", float(len(datamodule.train_dataset)), logger=True)
         self.log("test_size", float(len(datamodule.test_dataset)), logger=True)
 
@@ -83,7 +87,11 @@ class BaseModel(LightningModule):
             if self.cfg.log_mi:
                 layer_mi_at_epoch = self.estimate_mi()
                 self.epoch_results.update(layer_mi_at_epoch)
-            self.epoch_results["total_params"] = self.total_params
+            self.epoch_results["total_params"] = (
+                self.trainable_params
+                if self.trainable_params != self.total_params
+                else self.total_params
+            )
             self.epoch_results["train_acc"] = acc.item()
             self.epoch_results["train_loss"] = loss.item()
 
@@ -203,10 +211,10 @@ class RFN(BaseModel):
         layer_dims = [int(x) for x in cfg.layer_dims.split("x")]
         in_features, hidden_features, out_features = layer_dims
         # Define layers
-        self.layer0 = nn.Linear(in_features, hidden_features)
+        self.layer0 = nn.Linear(in_features, hidden_features, bias=False)
         # nn.init.normal_(self.layer0.weight, mean=0, std=sqrt(1 / hidden_features))
         # nn.init.zeros_(self.layer0.bias)
-        self.layer1 = nn.Linear(hidden_features, out_features)
+        self.layer1 = nn.Linear(hidden_features, out_features, bias=False)
         # nn.init.normal_(self.layer1.weight, mean=0, std=sqrt(1 / out_features))
         # nn.init.zeros_(self.layer1.bias)
         # Freeze first layer
