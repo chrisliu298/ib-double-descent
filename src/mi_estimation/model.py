@@ -70,12 +70,14 @@ class BaseModel(LightningModule):
         acc = torch.stack([i["train_acc"] for i in outputs]).double().mean()
         self.log_dict({"avg_train_acc": acc, "avg_train_loss": loss}, logger=True)
         # Aggregate results
-        should_log_now = log_now(self.current_epoch + 1)
-        should_log_now = should_log_now or self.current_epoch == self.cfg.max_epochs - 1
-        self.should_log_now = should_log_now
+        should_log_now1 = log_now(self.current_epoch + 1)
+        should_log_now2 = should_log_now1 or (
+            self.current_epoch + 1 == self.cfg.max_epochs
+        )
+        self.should_log_now = should_log_now2
         # Log weight stats
         if self.should_log_now:
-            self.epoch_results = {"epoch": self.current_epoch}
+            self.epoch_results = {"epoch": self.current_epoch + 1}
             if self.cfg.log_weight_stats:
                 weight_stats_at_epoch = weight_stats(self)
                 self.epoch_results.update(weight_stats_at_epoch)
@@ -87,11 +89,8 @@ class BaseModel(LightningModule):
             if self.cfg.log_mi:
                 layer_mi_at_epoch = self.estimate_mi()
                 self.epoch_results.update(layer_mi_at_epoch)
-            self.epoch_results["total_params"] = (
-                self.trainable_params
-                if self.trainable_params != self.total_params
-                else self.total_params
-            )
+            self.epoch_results["total_params"] = self.total_params
+            self.epoch_results["trainable_params"] = self.trainable_params
             self.epoch_results["train_acc"] = acc.item()
             self.epoch_results["train_loss"] = loss.item()
 
@@ -118,32 +117,30 @@ class BaseModel(LightningModule):
         self.log_dict({"avg_test_acc": acc, "avg_test_loss": loss}, logger=True)
 
     def on_train_end(self):
+        title = (
+            self.cfg.dataset
+            + "_"
+            + self.cfg.arch
+            + "_"
+            + self.cfg.layer_dims
+            + "_"
+            + self.cfg.activation
+            + "_"
+            + self.cfg.optimizer
+            + "_"
+            + self.cfg.loss
+            + "_"
+            + str(self.trainable_params)
+        )
+        results = pd.DataFrame(self.results)
+        results.to_csv(f"{title}.csv", index=False)
+        wandb.save(f"{title}.csv")
+        # Plot mutual information
         if self.cfg.log_mi:
-            # Save mutual information to csv and plot
-            title = (
-                self.cfg.dataset
-                + "_"
-                + self.cfg.arch
-                + "_"
-                + self.cfg.layer_dims
-                + "_"
-                + self.cfg.activation
-                + "_"
-                + self.cfg.optimizer
-                + "_"
-                + self.cfg.loss
-                + "_"
-                + str(self.total_params)
-            )
-            results = pd.DataFrame(self.results)
-            results.to_csv(f"{title}.csv", index=False)
-            # Plot mutual information
             plot_mi(results, title, self.cfg.layer_dims.count("x"))
-            # Save csv and plot to wandb
-            wandb.save(f"{title}.csv")
+            wandb.log({"information_plane": wandb.Image(f"{title}.png")})
             wandb.save(f"{title}.png")
             wandb.save(f"{title}.pdf")
-            wandb.log({"information_plane": wandb.Image(f"{title}.png")})
 
     def configure_optimizers(self):
         if self.cfg.optimizer == "adam":
