@@ -1,3 +1,4 @@
+import contextlib
 from collections import Counter
 from math import log2, sqrt
 
@@ -6,6 +7,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+
+@contextlib.contextmanager
+def temp_seed(seed):
+    """Used a a context manager to temporarily set the seed of the random number generator."""
+    state = np.random.get_state()
+    np.random.seed(seed)
+    try:
+        yield
+    finally:
+        np.random.set_state(state)
 
 
 def train_test_split(*tensors, total_size, test_size=0.2):
@@ -169,6 +181,7 @@ def standardize(x, mean, std):
     return (x - mean) / std
 
 
+@temp_seed(42)
 def add_label_noise(labels, label_noise, num_classes):
     """Add i.i.d. label noise to a tensor of labels."""
     labels = np.array(labels)
@@ -194,6 +207,7 @@ def dict_average(dicts):
     return {k: np.mean([d[k] for d in dicts]) for k in dicts[0]}
 
 
+@temp_seed(42)
 def sample_data(x, y, num_samples):
     """Sample a subset of the data."""
     indices = np.random.choice(len(x), num_samples, replace=False)
