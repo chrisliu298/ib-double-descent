@@ -72,10 +72,10 @@ def calculate_layer_mi(x_id, t, y, activation, num_bins=30):
 def plot_mi(df_i, title, num_cols):
     """Plot the mutual information for each layer."""
     mpl.rcParams.update({"font.size": 20})
-    fig, ax1 = plt.subplots(figsize=(8, 8))
+    fig, ax1 = plt.subplots(figsize=(10, 10))
     ax1.set_xlabel(r"$I(X; T)$")
     ax1.set_ylabel(r"$I(T; Y)$")
-    # ax1.set_title("Train")
+    ax1.set_title("_".join(title.split("_")[1:]))
     # ax1.set_xlim(0, 12.5)
     # ax1.set_ylim(0, 1.05)
     # ax2.set_xlabel(r"$I(X; T)$")
@@ -108,7 +108,6 @@ def plot_mi(df_i, title, num_cols):
     fig.colorbar(mappable1, label="Epochs", cax=cax)
     # fig.delaxes(fig.axes[2])
     # fig.colorbar(mappable2, label="Epochs", cax=cax)
-    fig.suptitle("_".join(title.split("_")[1:]), fontsize="x-large", y=1.05)
     fig.tight_layout()
     fig.savefig(title + ".pdf", bbox_inches="tight")
     fig.savefig(title + ".png", bbox_inches="tight", dpi=300)
