@@ -70,12 +70,23 @@ class BaseModel(LightningModule):
         loss = torch.stack([i["loss"] for i in outputs]).double().mean()
         acc = torch.stack([i["train_acc"] for i in outputs]).double().mean()
         self.log_dict({"avg_train_acc": acc, "avg_train_loss": loss}, logger=True)
-        # Aggregate results
+        self.history[self.current_epoch]["train_loss"] = loss.item()
+        self.history[self.current_epoch]["train_acc"] = acc.item()
+
+    def validation_step(self, batch, batch_idx):
+        loss, acc = self.evaluate(batch, stage="val")
+        return {"val_loss": loss, "val_acc": acc}
+
+    def validation_epoch_end(self, outputs):
+        loss = torch.stack([i["val_loss"] for i in outputs]).double().mean()
+        acc = torch.stack([i["val_acc"] for i in outputs]).double().mean()
+        self.log_dict({"avg_val_acc": acc, "avg_val_loss": loss}, logger=True)
         should_log_now = log_now(self.current_epoch) or (
             self.current_epoch + 1 == self.cfg.max_epochs
         )
         if should_log_now:
             self.history[self.current_epoch] = {}
+            self.history[self.current_epoch]["epoch"] = self.current_epoch + 1
             if self.cfg.log_weight_stats:
                 weight_stats_at_epoch = weight_stats(self)
                 self.history[self.current_epoch].update(weight_stats_at_epoch)
@@ -89,19 +100,6 @@ class BaseModel(LightningModule):
                 self.history[self.current_epoch].update(layer_mi_at_epoch)
             self.history[self.current_epoch]["total_params"] = self.total_params
             self.history[self.current_epoch]["trainable_params"] = self.trainable_params
-            self.history[self.current_epoch]["train_loss"] = loss.item()
-            self.history[self.current_epoch]["train_acc"] = acc.item()
-            self.history[self.current_epoch]["epoch"] = self.current_epoch + 1
-
-    def validation_step(self, batch, batch_idx):
-        loss, acc = self.evaluate(batch, stage="val")
-        return {"val_loss": loss, "val_acc": acc}
-
-    def validation_epoch_end(self, outputs):
-        loss = torch.stack([i["val_loss"] for i in outputs]).double().mean()
-        acc = torch.stack([i["val_acc"] for i in outputs]).double().mean()
-        self.log_dict({"avg_val_acc": acc, "avg_val_loss": loss}, logger=True)
-        if self.current_epoch in self.history:
             self.history[self.current_epoch]["val_loss"] = loss.item()
             self.history[self.current_epoch]["val_acc"] = acc.item()
 
