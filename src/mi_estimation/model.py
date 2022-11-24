@@ -210,11 +210,9 @@ class RFN(BaseModel):
         in_features, hidden_features, out_features = layer_dims
         # Define layers
         self.layer0 = nn.Linear(in_features, hidden_features, bias=False)
-        # nn.init.normal_(self.layer0.weight, mean=0, std=sqrt(1 / hidden_features))
-        # nn.init.zeros_(self.layer0.bias)
+        nn.init.normal_(self.layer0.weight, mean=0, std=sqrt(1 / in_features))
         self.layer1 = nn.Linear(hidden_features, out_features, bias=False)
-        # nn.init.normal_(self.layer1.weight, mean=0, std=sqrt(1 / out_features))
-        # nn.init.zeros_(self.layer1.bias)
+        nn.init.normal_(self.layer1.weight, mean=0, std=sqrt(1 / hidden_features))
         # Freeze first layer
         self.layer0.weight.requires_grad = False
         # Choose activation function
