@@ -70,8 +70,12 @@ class BaseModel(LightningModule):
         loss = torch.stack([i["loss"] for i in outputs]).double().mean()
         acc = torch.stack([i["train_acc"] for i in outputs]).double().mean()
         self.log_dict({"avg_train_acc": acc, "avg_train_loss": loss}, logger=True)
-        self.history[self.current_epoch]["train_loss"] = loss.item()
-        self.history[self.current_epoch]["train_acc"] = acc.item()
+        should_log_now = log_now(self.current_epoch) or (
+            self.current_epoch + 1 == self.cfg.max_epochs
+        )
+        if should_log_now:
+            self.history[self.current_epoch]["train_loss"] = loss.item()
+            self.history[self.current_epoch]["train_acc"] = acc.item()
 
     def validation_step(self, batch, batch_idx):
         loss, acc = self.evaluate(batch, stage="val")
