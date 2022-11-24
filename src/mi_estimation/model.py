@@ -101,7 +101,7 @@ class BaseModel(LightningModule):
         loss = torch.stack([i["val_loss"] for i in outputs]).double().mean()
         acc = torch.stack([i["val_acc"] for i in outputs]).double().mean()
         self.log_dict({"avg_val_acc": acc, "avg_val_loss": loss}, logger=True)
-        if self.current_epoch - 1 in self.history:
+        if self.current_epoch in self.history:
             self.history[self.current_epoch]["val_loss"] = loss.item()
             self.history[self.current_epoch]["val_acc"] = acc.item()
 
