@@ -1,0 +1,18 @@
+{
+    "activation": "tanh",
+    "arch": "rfn",
+    "batch_size": 1,
+    "binary_label": true,
+    "dataset": "fashionmnist",
+    "image_size": null,
+    "label_noise": 0.05,
+    "layer_dims": "784x88x2",
+    "loss": "mse",
+    "lr": 0.01,
+    "lr_scheduler": "inverse_sqrt",
+    "lr_scheduler_freq": 1,
+    "max_epochs": 1000,
+    "optimizer": "sgd",
+    "train_size": 100,
+    "work_dir": "/data/users/ibdd/experiments/toy_synthetic/fashionmnist/mse/layers_784x88x2/"
+}
