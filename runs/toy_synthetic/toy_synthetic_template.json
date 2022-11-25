@@ -1,0 +1,18 @@
+{
+  "dataset": "<= Replaced with 'mnist' or 'fashionmnist' =>",
+  "train_size": 100,
+  "label_noise": 0.05,
+  "binary_label": true,
+  "image_size": null,
+  "arch": "rfn",
+  "layer_dims": "<= Replaced with 768xWx2 =>",
+  "activation": "tanh",
+  "loss": "<= Replaced w/ 'ce' or 'mse' =>",
+  "batch_size": 1,
+  "lr": 1e-2,
+  "lr_scheduler": "inverse_sqrt",
+  "lr_scheduler_freq": 1,
+  "max_epochs": 1000,
+  "optimizer": "sgd",
+  "work_dir": "<= Replaced with a sub-path under /data/users/ibdd =>"
+}
