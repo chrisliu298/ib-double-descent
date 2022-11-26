@@ -21,6 +21,10 @@ spec:
                 - NVIDIA-GeForce-RTX-3090
                 - NVIDIA-TITAN-Xp
                 - Tesla-T4
+              - key: kubernetes.io/hostname
+                operator: NotIn
+                values:
+                  - osg-houston-stashcache.nrp.internet2.edu
       imagePullSecrets:
       - name: ib-double-descent-registry-creds
       containers:
@@ -36,10 +40,12 @@ spec:
             memory: 128Gi
             cpu: 64
             nvidia.com/gpu: "1"
+            ephemeral-storage: "768Gi"
           requests:
             memory: 64Gi
             cpu: 32
             nvidia.com/gpu: "1"
+            ephemeral-storage: "512Gi"
         command: [ "/bin/sh" ]
         # commmand does the following:
         # 1) set up the github deployment (SSH) key: we store the relevant secrets as environment variables, because
