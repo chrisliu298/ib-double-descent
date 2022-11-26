@@ -13,6 +13,7 @@
   "lr_scheduler": "inverse_sqrt",
   "lr_scheduler_freq": 1,
   "max_epochs": 1000,
+  "momentum": 0.0,
   "optimizer": "sgd",
   "num_workers": "full",
   "work_dir": "<= Replaced with a sub-path under /data/users/ibdd =>",
