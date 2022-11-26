@@ -19,7 +19,7 @@
     "num_bins": 30,
     "num_workers": "full",
     "optimizer": "sgd",
-    "project_id": "dnn-mi",
+    "project_id": "dnn-mi-toy-synthetic",
     "seed": null,
     "train_size": 100,
     "wandb": true,
