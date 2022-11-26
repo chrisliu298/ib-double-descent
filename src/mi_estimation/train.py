@@ -27,7 +27,6 @@ def parse_args(run_file: Optional[str] = None):
     #
     # (e.g. if running a bunch of variants from a folder)
     if run_file and os.path.exists(run_file):
-        run_file: str = sys.argv[1]
         with open(run_file, 'r') as f:
             cfg = EasyDict(json.load(f))
             return cfg
