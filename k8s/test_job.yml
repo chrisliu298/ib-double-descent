@@ -70,20 +70,7 @@ spec:
             git fetch && git pull && git reset --hard origin/main &&
             echo "job ready to start" &&
             cd src/mi_estimation &&
-            conda run --no-capture-output -p ../../venv python train.py \
-                --project_id "dnn-info-plane-better-plot" \
-                --dataset "szt_g1" \
-                --layer_shapes "12x10x7x5x4x3x2" \
-                --activation "tanh" \
-                --batch_size 256 \
-                --lr 1e-4 \
-                --max_epochs 10000 \
-                --optimizer "adam" \
-                --seed 42 \
-                --log_mi \
-                --log_weight_stats \
-                --log_grad_stats \
-                --wandb
+            conda run --no-capture-output -p ../../venv python train.py ../../runs/toy_synthetic/definitions/fashionmnist_ce_784x4x2.json
         volumeMounts:
         - mountPath: /data/users/ibdd
           name: ib-dd-data-volume
