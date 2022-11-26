@@ -1,8 +1,10 @@
 import os
 import subprocess
 import sys
-from multiprocessing import Pool, current_process
+from multiprocessing import Pool
 from typing import List
+
+from src.mi_estimation.data import MNISTDataModule, FashionMNISTDataModule
 
 """
 A utility for running multiple experiments on multiple GPUs
@@ -24,6 +26,11 @@ if __name__ == '__main__':
                                     f"{EXPMT_DIR}/{config_file}"],
                                    )
         process.wait()
+
+
+    # pre-download so that when we load in each new process, we don't re-download
+    MNISTDataModule({}).prepare_data()
+    FashionMNISTDataModule({}).prepare_data()
     with Pool(PER_GPU_COUNT) as p:
         p.map(worker, matches)
 
