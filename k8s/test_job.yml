@@ -33,12 +33,12 @@ spec:
               name: ib-double-descent-wandb-key
         resources:
           limits:
-            memory: 32Gi
-            cpu: 16
+            memory: 128Gi
+            cpu: 64
             nvidia.com/gpu: "1"
           requests:
-            memory: 32Gi
-            cpu: 16
+            memory: 64Gi
+            cpu: 32
             nvidia.com/gpu: "1"
         command: [ "/bin/sh" ]
         # commmand does the following:
