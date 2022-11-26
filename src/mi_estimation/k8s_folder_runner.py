@@ -4,7 +4,7 @@ import sys
 from multiprocessing import Pool
 from typing import List
 
-from src.mi_estimation.data import MNISTDataModule, FashionMNISTDataModule
+from data import MNISTDataModule, FashionMNISTDataModule
 
 """
 A utility for running multiple experiments on multiple GPUs
