@@ -22,6 +22,6 @@
   "seed": null,
   "wandb": true,
   "log_mi": true,
-  "log_grad_stats": false,
-  "log_weight_stats": false
+  "log_grad_stats": true,
+  "log_weight_stats": true
 }
