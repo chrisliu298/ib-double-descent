@@ -20,13 +20,13 @@ from data import (
 from model import CNN, FCN, RFN
 
 
-def parse_args():
+def parse_args(run_file: Optional[str] = None):
     # An alternative way to define and use arguments: define all as JSON and just load
     # from file. Only used if first CLI argument is an existing file (presumed JSON format)
     # `python train.py folder/my_run_spec.json`
     #
     # (e.g. if running a bunch of variants from a folder)
-    if os.path.exists(sys.argv[1]):
+    if run_file and os.path.exists(run_file):
         run_file: str = sys.argv[1]
         with open(run_file, 'r') as f:
             cfg = EasyDict(json.load(f))
@@ -94,7 +94,8 @@ def parse_args():
 
 
 def main():
-    cfg = parse_args()
+    run_file: Optional[str] = sys.argv[1] if len(sys.argv) > 0 else None
+    cfg = parse_args(run_file=run_file)
     # Set num workers
     if cfg.num_workers == "full":
         cfg.num_workers = os.cpu_count()

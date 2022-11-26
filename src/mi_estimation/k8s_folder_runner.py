@@ -5,7 +5,7 @@ from multiprocessing import Pool
 from typing import List
 
 from data import MNISTDataModule, FashionMNISTDataModule
-
+from train import parse_args
 """
 A utility for running multiple experiments on multiple GPUs
 """
@@ -29,8 +29,10 @@ if __name__ == '__main__':
 
 
     # pre-download so that when we load in each new process, we don't re-download
-    MNISTDataModule({}).prepare_data()
-    FashionMNISTDataModule({}).prepare_data()
+    # TODO this probably won't generalize, but may work for this pre-loading case
+    cfg = parse_args(matches[0])
+    MNISTDataModule(cfg).prepare_data()
+    FashionMNISTDataModule(cfg).prepare_data()
     with Pool(PER_GPU_COUNT) as p:
         p.map(worker, matches)
 
