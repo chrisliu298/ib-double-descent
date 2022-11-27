@@ -10,6 +10,7 @@ from pytorch_lightning import LightningModule
 from torchmetrics.functional import accuracy
 
 from utils import (
+    activation_fn,
     calculate_layer_mi,
     dict_average,
     grad_stats,
@@ -218,10 +219,7 @@ class RFN(BaseModel):
         # Freeze first layer
         self.layer0.weight.requires_grad = False
         # Choose activation function
-        if cfg.activation == "relu":
-            self.activation = torch.relu
-        elif cfg.activation == "tanh":
-            self.activation = torch.tanh
+        self.activation = activation_fn(cfg.activation)
 
     def forward(self, x):
         x = x.flatten(1)
@@ -255,10 +253,7 @@ class FCN(BaseModel):
         self._layers.append(layer)
         self.add_module(f"layer{len(layer_dims) - 1}", layer)
         # Choose activation function
-        if cfg.activation == "relu":
-            self.activation = torch.relu
-        elif cfg.activation == "tanh":
-            self.activation = torch.tanh
+        self.activation = activation_fn(cfg.activation)
 
     def forward(self, x):
         x = x.flatten(1)
@@ -298,10 +293,7 @@ class CNN(BaseModel):
         self._layers.append(layer)
         self.add_module(f"conv{len(layer_dims) - 1}", layer)
         # Choose activation function
-        if cfg.activation == "relu":
-            self.activation = torch.relu
-        elif cfg.activation == "tanh":
-            self.activation = torch.tanh
+        self.activation = activation_fn(cfg.activation)
 
     def forward(self, x):
         Ts = []  # intermediate outputs for all layers

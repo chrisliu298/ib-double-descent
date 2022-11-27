@@ -15,6 +15,7 @@ from data import (
     SZTDataModule,
 )
 from model import CNN, FCN, RFN
+from utils import activations
 
 
 def parse_args():
@@ -45,7 +46,7 @@ def parse_args():
     )
     parser.add_argument("--layer_dims", type=str, default="12x10x7x5x4x3x2")
     parser.add_argument(
-        "--activation", type=str, default="tanh", choices=["relu", "tanh"]
+        "--activation", type=str, default="tanh", choices=activations.keys()
     )
     # Training
     parser.add_argument("--loss", type=str, default="ce", choices=["ce", "mse"])

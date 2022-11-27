@@ -6,7 +6,27 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from mpl_toolkits.axes_grid1 import make_axes_locatable
+import torch.nn.functional as F
+
+activations = {
+    # None-saturating
+    "hardshrink": F.hardshrink,  # (min, max)
+    "softshrink": F.softshrink,  # (min, max)
+    "tanhshrink": F.tanhshrink,  # (min, max)
+    # Singly-saturating (lower)
+    "relu": F.relu,  # (0, max)
+    "elu": F.elu,  # (-1, max)
+    "softplus": F.softplus,  # (0, max)
+    # Singly-saturating (upper)
+    "logsigmoid": F.logsigmoid,  # (min, 0)
+    # Doubly-saturating
+    "sigmoid": torch.sigmoid,  # (0, 1)
+    "hardsigmoid": F.hardsigmoid,  # (0, 1)
+    "tanh": torch.tanh,  # (-1, 1)
+    "hardtanh": F.hardtanh,  # (-1, 1)
+    "softsign": F.softsign,  # (-1, 1)
+    "relu6": F.relu6,  # (0, 6)
+}
 
 
 @contextlib.contextmanager
@@ -46,10 +66,20 @@ def calculate_layer_mi(x_id, t, y, activation, num_bins=30):
     num_samples = t.shape[0]
     pdf_x, pdf_y, pdf_t, pdf_xt, pdf_ty = [Counter() for _ in range(5)]
     # Decide the bin ranges based on the activation function used
-    if activation == "tanh":
-        bins = torch.linspace(-1, 1, num_bins)
-    elif activation == "relu":
+    if activation in ["hardshrink", "softshrink", "tanhshrink"]:  # none-saturating
+        bins = torch.linspace(t.min(), t.max(), num_bins)
+    elif activation in ["relu", "softplus"]:  # singly-saturating (lower)
         bins = torch.linspace(0, t.max(), num_bins)
+    elif activation == "elu":  # singly-saturating (lower)
+        bins = torch.linspace(-1, t.max(), num_bins)
+    elif activation == "logsigmoid":  # singly-saturating (upper)
+        bins = torch.linspace(t.min(), 0, num_bins)
+    elif activation in ["sigmoid", "hardsigmoid"]:  # doubly-saturating
+        bins = torch.linspace(0, 1, num_bins)
+    elif activation in ["tanh", "hardtanh", "softsign"]:  # doubly-saturating
+        bins = torch.linspace(-1, 1, num_bins)
+    elif activation == "relu6":  # doubly-saturating
+        bins = torch.linspace(0, 6, num_bins)
     indices = torch.bucketize(t, bins)
     # Calculate probability distributions by counting
     for i in range(num_samples):
@@ -220,3 +250,7 @@ def lr_schedule(lr_schedule_type):
         return lambda t: 1 / (0.05 * t + 1)
     elif lr_schedule_type == "inverse_sqrt":
         return lambda t: 1 / sqrt(1 + t)
+
+
+def activation_fn(activation_fn_type):
+    return activations[activation_fn_type]
