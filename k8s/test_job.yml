@@ -21,6 +21,10 @@ spec:
                 - NVIDIA-GeForce-RTX-3090
                 - NVIDIA-TITAN-Xp
                 - Tesla-T4
+              - key: kubernetes.io/hostname
+                operator: NotIn
+                values:
+                  - osg-houston-stashcache.nrp.internet2.edu
       imagePullSecrets:
       - name: ib-double-descent-registry-creds
       containers:
@@ -33,13 +37,15 @@ spec:
               name: ib-double-descent-wandb-key
         resources:
           limits:
-            memory: 32Gi
-            cpu: 16
+            memory: 128Gi
+            cpu: 64
             nvidia.com/gpu: "1"
+            ephemeral-storage: "768Gi"
           requests:
-            memory: 32Gi
-            cpu: 16
+            memory: 64Gi
+            cpu: 32
             nvidia.com/gpu: "1"
+            ephemeral-storage: "512Gi"
         command: [ "/bin/sh" ]
         # commmand does the following:
         # 1) set up the github deployment (SSH) key: we store the relevant secrets as environment variables, because
@@ -70,20 +76,7 @@ spec:
             git fetch && git pull && git reset --hard origin/main &&
             echo "job ready to start" &&
             cd src/mi_estimation &&
-            conda run --no-capture-output -p ../../venv python train.py \
-                --project_id "dnn-info-plane-better-plot" \
-                --dataset "szt_g1" \
-                --layer_shapes "12x10x7x5x4x3x2" \
-                --activation "tanh" \
-                --batch_size 256 \
-                --lr 1e-4 \
-                --max_epochs 10000 \
-                --optimizer "adam" \
-                --seed 42 \
-                --log_mi \
-                --log_weight_stats \
-                --log_grad_stats \
-                --wandb
+            conda run --no-capture-output -p ../../venv python k8s_folder_runner.py ../../runs/toy_synthetic/definitions
         volumeMounts:
         - mountPath: /data/users/ibdd
           name: ib-dd-data-volume

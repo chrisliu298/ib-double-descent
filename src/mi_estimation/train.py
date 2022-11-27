@@ -1,5 +1,8 @@
 import argparse
 import os
+import sys
+import json
+from typing import Optional
 
 import wandb
 from easydict import EasyDict
@@ -18,7 +21,17 @@ from model import CNN, FCN, RFN
 from utils import activations
 
 
-def parse_args():
+def parse_args(run_file: Optional[str] = None):
+    # An alternative way to define and use arguments: define all as JSON and just load
+    # from file. Only used if first CLI argument is an existing file (presumed JSON format)
+    # `python train.py folder/my_run_spec.json`
+    #
+    # (e.g. if running a bunch of variants from a folder)
+    if run_file and os.path.exists(run_file):
+        with open(run_file, 'r') as f:
+            cfg = EasyDict(json.load(f))
+            return cfg
+
     # Parse command line arguments
     parser = argparse.ArgumentParser()
     # Dataset
@@ -65,6 +78,7 @@ def parse_args():
         "--optimizer", type=str, default="adam", choices=["adam", "sgd"]
     )
     parser.add_argument("--num_workers", default="full")
+    parser.add_argument("--work_dir", default=None)
     # MI estimation
     parser.add_argument("--num_bins", type=int, default=30)
     # Experiment
@@ -80,7 +94,8 @@ def parse_args():
 
 
 def main():
-    cfg = parse_args()
+    run_file: Optional[str] = sys.argv[1] if len(sys.argv) > 0 else None
+    cfg = parse_args(run_file=run_file)
     # Set num workers
     if cfg.num_workers == "full":
         cfg.num_workers = os.cpu_count()
@@ -115,11 +130,16 @@ def main():
             mode="max",
         ),
     ]
+    # default is None, uses current working directory if set to None on logger
+    work_dir: Optional[str] = cfg.get('work_dir', None)
+    if work_dir and not os.path.exists(work_dir):
+        os.makedirs(work_dir, exist_ok=False)
     logger = WandbLogger(
         offline=not cfg.wandb,
         project=cfg.project_id,
         entity="ib-double-descent",
         config=cfg,
+        dir=work_dir
     )
     trainer = Trainer(
         accelerator="gpu",
