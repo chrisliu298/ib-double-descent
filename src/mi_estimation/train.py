@@ -1,7 +1,7 @@
 import argparse
+import json
 import os
 import sys
-import json
 from typing import Optional
 
 import wandb
@@ -28,7 +28,7 @@ def parse_args(run_file: Optional[str] = None):
     #
     # (e.g. if running a bunch of variants from a folder)
     if run_file and os.path.exists(run_file):
-        with open(run_file, 'r') as f:
+        with open(run_file, "r") as f:
             cfg = EasyDict(json.load(f))
             return cfg
 
@@ -131,7 +131,7 @@ def main():
         ),
     ]
     # default is None, uses current working directory if set to None on logger
-    work_dir: Optional[str] = cfg.get('work_dir', None)
+    work_dir: Optional[str] = cfg.get("work_dir", None)
     if work_dir and not os.path.exists(work_dir):
         os.makedirs(work_dir, exist_ok=False)
     logger = WandbLogger(
@@ -139,7 +139,7 @@ def main():
         project=cfg.project_id,
         entity="ib-double-descent",
         config=cfg,
-        dir=work_dir
+        dir=work_dir,
     )
     trainer = Trainer(
         accelerator="gpu",
